@@ -1,1 +1,1 @@
-# KISS-ORM
+# KISS-ORM 1.0-dev
