@@ -1,0 +1,14 @@
+{
+    "name": "levitarmouse/kiss-orm",
+    "description": "Active record ORM",
+    "type": "library",
+    "require":{
+        "php" : "^5.5 || ^7.0"
+    },
+    "authors": [
+        {
+            "name": "Gabriel Prieto",
+            "email": "levitarmouse@gmail.com"
+        }
+    ]
+}
