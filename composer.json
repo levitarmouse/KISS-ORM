@@ -1,5 +1,5 @@
 {
-    "name": "levitarmouse/kiss-orm",
+    "name": "levitarmouse/kiss_orm",
     "description": "Active record ORM",
     "type": "library",
     "require":{
