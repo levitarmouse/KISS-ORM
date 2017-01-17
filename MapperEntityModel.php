@@ -10,7 +10,6 @@
  * @copyright 2012 Levitarmouse
  * @link      Levitarmouse
  */
-
 namespace levitarmouse\kiss_orm;
 
 use levitarmouse\kiss_orm\dto\GetByFilterDTO;
@@ -72,20 +71,30 @@ implements EntityInterface,
             }
         }
 
-        $bPathConf = false;
-        if (defined('ORM_ENTITY_DESCRIPTOR_PATH')) {
-            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
-                $bPathConf = true;
-            }
-        }
+//        $bPathConf = false;
+//        if (defined('ORM_ENTITY_DESCRIPTOR_PATH')) {
+//            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
+//                $bPathConf = true;
+//            }
+//        }
+//        $descriptor = false;
+//        if ($dto->sFileDescriptorModel) {
+//            if (file_exists($dto->sFileDescriptorModel)) {
+//                $descriptor = true;                
+//            }
+////            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
+////                $bPathConf = true;
+////            }
+//        }
 
-        if ($bPathConf) {
-            $this->_descriptorPath = ORM_ENTITY_DESCRIPTOR_PATH;
-            $x = $this->_descriptorPath;
-        } else {
-            $this->_descriptorPath = __DIR__.'/'.'entities_descriptors/';
-            $x = $this->_descriptorPath;
-        }
+//        if ($bPathConf) {
+//            $this->_descriptorPath = ORM_ENTITY_DESCRIPTOR_PATH;
+//            $x = $this->_descriptorPath;
+//        } else {
+////            $this->_descriptorPath = __DESCRIPTORS__.'/'.'entities_descriptors/';
+//            $this->_descriptorPath = $this->
+//            $x = $this->_descriptorPath;
+//        }
 
         $oDB         = ($dto->oDB) ? $dto->oDB : null;
         $oLogger     = ($dto->oLogger) ? $dto->oLogger : null;
@@ -104,7 +113,8 @@ implements EntityInterface,
         }
 
         if ($sEntityDescriptor) {
-            $finalDescriptorLocation = $this->_descriptorPath.$sEntityDescriptor;
+//            $finalDescriptorLocation = $this->_descriptorPath.$sEntityDescriptor;
+            $finalDescriptorLocation = $sEntityDescriptor;
             if (file_exists($finalDescriptorLocation)) {
                 $this->_loadConfig($finalDescriptorLocation);
             }

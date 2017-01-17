@@ -75,9 +75,9 @@ class Mapper extends \levitarmouse\core\Object
     
     public static function connect()
     {
-//        $dbConfigPath   = DB_CONFIG;
+        $dbConfigPath = DB_CONFIG;
 //        $logsConfigPath 
-        $dbCfg = new \levitarmouse\core\ConfigIni('database.ini');
+        $dbCfg = new \levitarmouse\core\ConfigIni($dbConfigPath);
         
 //        $oProxy    = PDOProxy::getInstance($dbCfg);
         $oProxy = \levitarmouse\kiss_orm\database\PDOProxy::getInstance($dbCfg);
@@ -424,14 +424,16 @@ EOQ;
      */
     public function select($sSql, $aBnd)
     {
+        $db = self::$oDb;
+        
         $aResult = null;
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
 //            else {
                 $iTimeStart = (microtime(true));
-                $aResult = $this->oDb->selectWithBindings($sSql, $aBnd);
+                $aResult = $db->selectWithBindings($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -457,7 +459,9 @@ EOQ;
 //            }
         }
         catch (Exception $e) {
-            $this->oLogger->logDebug($e->getMessage());
+            if ($this->oLogger) {
+                $this->oLogger->logDebug($e->getMessage());                
+            }
             $aResult = $e->getMessage();
 //            $this->logTrace();
         }

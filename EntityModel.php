@@ -62,6 +62,8 @@ implements EntityInterface, CollectionInterface
     //public $oTvTopology;
     public $oLogger;
     public $oDb;
+    
+    protected $descriptorLocation;
 
     protected $aCollection;
     protected $collectionIndex;
@@ -71,6 +73,8 @@ implements EntityInterface, CollectionInterface
 //    function __construct(EntityDTO $dto)
     function __construct(EntityDTO $dto)
     {
+        $this->_locateSource(get_class($this));
+
         $this->_dto = $dto;
 
         $this->aCollection = array();
@@ -86,6 +90,10 @@ implements EntityInterface, CollectionInterface
         $sFileDescriptor = $this->getFileDescriptorByConvention();
 
         $oModelDto     = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
+        
+        if ($this->descriptorLocation) {
+            $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
+        }
 
         $modelName = get_class($this) . 'Model';
         if (class_exists($modelName)) {
@@ -108,6 +116,20 @@ implements EntityInterface, CollectionInterface
         } else if ($dto->ukDTO) {
             $this->loadByUK($dto->ukDTO);
         }
+    }
+    
+    private function _locateSource($className) {
+        
+        $locationByName = str_replace('\\', '/', $className);
+        
+        $aLocationByName = explode('/', $locationByName);
+        $ClassName = array_pop($aLocationByName);
+        $ClassPSR0Location = implode('/', $aLocationByName);
+        
+        $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;
+        
+        $this->descriptorLocation = $entityLocation;
+        
     }
 
     protected function loadByPK(PrimaryKeyDTO $pkDTO)
