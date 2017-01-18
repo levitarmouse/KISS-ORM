@@ -625,8 +625,10 @@ implements EntityInterface, CollectionInterface
                     if ($bWasChanged) {
                         $this->hasChanges |= true;
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
-                        $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
-                                                         " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
+                        if ($this->oLogger) {
+                            $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
+                                                             " | old value -> [{$oldValue}] | new value -> [{$newValue}]");                            
+                        }
                     }
                 }
             }

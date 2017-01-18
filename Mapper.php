@@ -63,7 +63,6 @@ class Mapper extends \levitarmouse\core\Object
         }        
         
         if ($oDB) {
-//            $this->oDb = $oDB;
             self::$oDb = $oDB;
         } else {
             $this->connect();
@@ -254,14 +253,16 @@ EOQ;
      */
     public function execute($sSql, $aBnd)
     {
+        $db = self::$oDb;
+        
         $iResult = 0;
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
             else {
                 $iTimeStart = (microtime(true));
-                $iResult = $this->oDb->sqlExecForBinding($sSql, $aBnd);
+                $iResult = $db->sqlExecForBinding($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -295,14 +296,16 @@ EOQ;
      */
     public function insert($sSql, $aBnd)
     {
+        $db = self::$oDb;
+        
         $iResult = 0;
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
             else {
                 $iTimeStart = (microtime(true));
-                $iResult = $this->oDb->insertWithBindings($sSql, $aBnd);
+                $iResult = $db->insertWithBindings($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -336,14 +339,16 @@ EOQ;
      */
     public function update($sSql, $aBnd)
     {
+        $db = self::$oDb;
+        
         $iResult = 0;
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
             else {
                 $iTimeStart = (microtime(true));
-                $iResult = $this->oDb->executeWithBindings($sSql, $aBnd);
+                $iResult = $db->executeWithBindings($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -377,15 +382,16 @@ EOQ;
      */
     public function delete($sSql, $aBnd)
     {
+        $db = self::$oDb;
+        
         $iResult = 0;
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
             else {
                 $iTimeStart = (microtime(true));
-                $iResult = $this->oDb->executeWithBindings($sSql, $aBnd);
-//                $iResult = $this->oDb->sqlExecForBinding($sSql, $aBnd);
+                $iResult = $db->executeWithBindings($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -437,7 +443,7 @@ EOQ;
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
-//                $dbError = $this->oDb->getError();
+//                $dbError = $db->getError();
 
                 self::$iCountSelect ++;
                 self::$iCountAction ++;
@@ -450,7 +456,7 @@ EOQ;
 //
 //                    if (Config::LOG_DB_EXEC_PLAN) {
 //                        $aBnd = array();
-//                        $aExecPlan = $this->oDb->sqlOpenForBinding('SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR)', $aBnd);
+//                        $aExecPlan = $db->sqlOpenForBinding('SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR)', $aBnd);
 //                        foreach ($aExecPlan as $row) {
 //                            $this->oLogger->logDebug($row['PLAN_TABLE_OUTPUT']);
 //                        }
@@ -477,8 +483,10 @@ EOQ;
      */
     public function prepareAndSelect($query, $params)
     {
+        $db = self::$oDb;
+        
         try {
-            if (!$this->oDb) {
+            if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
             $sSql = <<<QUERY
@@ -510,7 +518,7 @@ QUERY;
 
             $aResult = null;
             $iTimeStart = (microtime(true));
-            $aResult = $this->oDb->selectWithBindings($sSql, $aBnd);
+            $aResult = $db->selectWithBindings($sSql, $aBnd);
             $iTimeEnd   = (microtime(true));
             $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -520,7 +528,9 @@ QUERY;
 
         }
         catch (Exception $e) {
-            $this->oLogger->logDebug($e->getMessage());
+            if ($this->oLogger) {
+                $this->oLogger->logDebug($e->getMessage());                
+            }
             $aResult = $e->getMessage();
         }
         return $aResult;

@@ -720,7 +720,9 @@ implements EntityInterface,
                  WHERE {$sWhere}";
 
             $iResult = $this->update($sSql, $aBnd, $sMainTable);
-            $this->oLogger->logDebug("update ending with: ({$iResult})");
+            if ($this->oLogger) {
+                $this->oLogger->logDebug("update ending with: ({$iResult})");                
+            }
             return $iResult;
         }
 
@@ -752,7 +754,9 @@ implements EntityInterface,
             $sSql .= ' ' . $sWhere;
 
             $iResult = $this->delete($sSql, $aBnd, $sMainTable);
-            $this->oLogger->logDebug("delete ending with: ({$iResult})");
+            if ($this->oLogger) {
+                $this->oLogger->logDebug("delete ending with: ({$iResult})");                
+            }
             return $iResult;
         }
 
@@ -824,10 +828,14 @@ EOQ;
             foreach ($aBnd as $field => $value) {
                 $sLogValues .= @$field . '->[' . $value . '] ';
             }
-            $this->oLogger->logDbChanges("select from {$sMainTable} where {$sLogValues}", 'SELECT');
+            if ($this->logTrace()) {
+                $this->oLogger->logDbChanges("select from {$sMainTable} where {$sLogValues}", 'SELECT');                
+            }
 
             $aResult = $this->select($sSql, $aBnd);
-            $this->oLogger->logDbChanges("result: " . serialize($aResult));
+            if ($this->oLogger) {
+                $this->oLogger->logDbChanges("result: " . serialize($aResult));                
+            }
 
             if (is_array($aResult) && isset($aResult[0])) {
 
