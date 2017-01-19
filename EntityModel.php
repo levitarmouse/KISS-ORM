@@ -538,7 +538,14 @@ implements EntityInterface, CollectionInterface
     {
         $iResult = 0;
 
-        $aUniqueKey = $this->oMapper->getFieldMappingUniqueKey();
+        $aPrimaryKey = $this->oMapper->getFieldMappingPrimaryKey();
+        
+        if ($aPrimaryKey) {
+            $aUniqueKey = $aPrimaryKey;
+        } else {
+            $aUniqueKey = $this->oMapper->getFieldMappingUniqueKey();
+        }
+        
         if (is_array($aUniqueKey) && count($aUniqueKey) > 0) {
             try {
                 foreach ($aUniqueKey as $sField => $sAttrib) {
