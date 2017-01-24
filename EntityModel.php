@@ -71,7 +71,7 @@ implements EntityInterface, CollectionInterface
     protected $_dto;
 
 //    function __construct(EntityDTO $dto)
-    function __construct(EntityDTO $dto)
+    function __construct(EntityDTO $dto = null)
     {
         $this->_locateSource(get_class($this));
 
@@ -80,11 +80,13 @@ implements EntityInterface, CollectionInterface
         $this->aCollection = array();
         $this->collectionIndex = 0;
 
-        if ($dto->oDB) {
-            $this->oDb = $dto->oDB;
-        }
-        if ($dto->oLogger) {
-            $this->oLogger = new DbLogger($dto->oLogger);
+        if ($dto) {
+            if ($dto->oDB) {
+                $this->oDb = $dto->oDB;
+            }
+            if ($dto->oLogger) {
+                $this->oLogger = new DbLogger($dto->oLogger);
+            }            
         }
 
         $sFileDescriptor = $this->getFileDescriptorByConvention();
@@ -111,10 +113,12 @@ implements EntityInterface, CollectionInterface
         $this->_isLoading   = false;
         $this->objectStatus = self::NO_CREATED;
 
-        if ($dto->pkDTO) {
-            $this->loadByPK($dto->pkDTO);
-        } else if ($dto->ukDTO) {
-            $this->loadByUK($dto->ukDTO);
+        if ($dto) {
+            if ($dto->pkDTO) {
+                $this->loadByPK($dto->pkDTO);
+            } else if ($dto->ukDTO) {
+                $this->loadByUK($dto->ukDTO);
+            }
         }
     }
     
