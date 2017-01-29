@@ -24,6 +24,8 @@ use \Exception;
  */
 class Mapper extends \levitarmouse\core\Object
 {
+    const DB_CONFIG_FILE_DOESNT_EXIST = 'DB_CONFIG_FILE_DOESNT_EXIST';
+    const DB_CONNECTION_FAILED     = 'DB_CONNECTION_FAILED';
     const SYSDATE_STRING     = 'SYSDATE_STRING';
     const SQL_SYSDATE_STRING = 'SQL_SYSDATE_STRING';
     const EMPTY_STRING       = 'EMPTY_STRING';

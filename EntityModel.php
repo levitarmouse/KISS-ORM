@@ -67,6 +67,7 @@ implements EntityInterface, CollectionInterface
 
     protected $aCollection;
     protected $collectionIndex;
+    protected $collectionSize;
 
     protected $_dto;
 
@@ -363,15 +364,16 @@ implements EntityInterface, CollectionInterface
 
         $className = get_class($this);
 
-//        $return = array();
         $dto = new EntityDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
             $obj = new $className($dto);
-            $obj->fillByObject($row);
+            $obj->fill($row);
 
             $this->aCollection[] = $obj;
         }
         unset($resultSet);
+        
+        $this->collectionSize = count($this->aCollection);
 
         return $this->aCollection;
     }
@@ -425,6 +427,7 @@ implements EntityInterface, CollectionInterface
 //            $this->aCollection[] = $obj;
 //        }
 //        unset($resultSet);
+        $this->collectionSize = count($this->aCollection);
 
         return $this->aCollection;
     }
@@ -436,7 +439,8 @@ implements EntityInterface, CollectionInterface
 
     public function getNext()
     {
-        while ($this->collectionIndex < count($this->aCollection)) {
+        if ($this->collectionIndex < $this->collectionSize) {
+//        while ($this->collectionIndex < count($this->aCollection)) {
 //            if ($this->collectionIndex == 0) {
 //                $index = 0;
 //                $this->collectionIndex ++;
@@ -448,8 +452,9 @@ implements EntityInterface, CollectionInterface
             $return = $this->aCollection[$index];
 
             return $return;
+        } else {
+            return $this;
         }
-        return $this;
     }
 
     /* ********************************************

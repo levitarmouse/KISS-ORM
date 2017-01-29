@@ -32,7 +32,7 @@ use stdClass;
  * @copyright 2012 LM
  * @link      LM
  */
-abstract class ViewModel extends Object implements CollectionInterface
+abstract class ViewModel extends \levitarmouse\core\Object implements CollectionInterface
 {
 
 //    const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
@@ -59,28 +59,39 @@ abstract class ViewModel extends Object implements CollectionInterface
     public $oLogger;
     public $oDb;
 
+    protected $descriptorLocation;
+
     protected $aCollection;
     protected $collectionIndex;
+    protected $collectionSize;
 
     protected $_dto;
 
-    function __construct(dto\ViewDTO $dto)
+    function __construct(dto\ViewDTO $dto = null)
     {
+        $this->_locateSource(get_class($this));
+
         $this->_dto = $dto;
 
         $this->aCollection = array();
         $this->collectionIndex = 0;
 
-        if ($dto->oDB) {
-            $this->oDb = $dto->oDB;
-        }
-        if ($dto->oLogger) {
-            $this->oLogger = new DbLogger($dto->oLogger);
+        if ($dto) {
+            if ($dto->oDB) {
+                $this->oDb = $dto->oDB;
+            }
+            if ($dto->oLogger) {
+                $this->oLogger = new DbLogger($dto->oLogger);
+            }            
         }
 
         $sFileDescriptor = $this->getFileDescriptorByConvention();
 
         $oModelDto     = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
+
+        if ($this->descriptorLocation) {
+            $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
+        }
 
         $modelName = get_class($this) . 'Model';
         if (class_exists($modelName)) {
@@ -105,6 +116,20 @@ abstract class ViewModel extends Object implements CollectionInterface
 //        }
     }
 
+    private function _locateSource($className) {
+        
+        $locationByName = str_replace('\\', '/', $className);
+        
+        $aLocationByName = explode('/', $locationByName);
+        $ClassName = array_pop($aLocationByName);
+        $ClassPSR0Location = implode('/', $aLocationByName);
+        
+        $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;
+        
+        $this->descriptorLocation = $entityLocation;
+        
+    }
+    
     /**
      * Returns a file descriptor
      *
@@ -232,15 +257,17 @@ abstract class ViewModel extends Object implements CollectionInterface
 
         $className = get_class($this);
 
-//        $return = array();
-        $dto = new EntityDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
-            $obj = new $className($dto);
-            $obj->fillByObject($row);
+
+            $obj = new $className();
+
+            $obj->fill($row);
 
             $this->aCollection[] = $obj;
         }
         unset($resultSet);
+
+        $this->collectionSize = count($this->aCollection);
 
         return $this->aCollection;
     }
@@ -369,8 +396,10 @@ abstract class ViewModel extends Object implements CollectionInterface
                     if ($bWasChanged) {
                         $this->hasChanges |= true;
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
-                        $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
+                        if ($this->oLogger) {
+                            $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
                                                          " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
+                        }
                     }
                 }
             }
