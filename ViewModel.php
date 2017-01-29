@@ -280,9 +280,10 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
             $this->aCollection = array();
         }
 
-        $dto = new dto\ViewDTO($this->oDb, $this->oLogger);
+        //$dto = new dto\ViewDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
-            $obj = new $className($dto);
+//            $obj = new $className($dto);
+            $obj = new $className();
             $obj->fill($row);
 
             $this->aCollection[] = $obj;
@@ -318,8 +319,11 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
 //        if (!$orderDto->getAttribs()) {
 //            $orderDto = null;
 //        }
-//        if (!$limitDTO->getAttribs()) {
-//            $limitDTO = null;
+
+//        $limit = $limitDto->getAttribs();
+        
+//        if (!$limitDto || !$limitDto->getAttribs()) {
+//            $limitDto = null;
 //        }
 
 //        $resultSet = $this->oMapper->getByFilter($filterDTO);

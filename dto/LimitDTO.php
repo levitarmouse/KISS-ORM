@@ -18,6 +18,15 @@ namespace levitarmouse\kiss_orm\dto;
 class LimitDTO extends DTO
 {
     protected $justFirst;
+    
+    public $firstRow;
+    public $lastRow;
+    
+    public function __construct() {
+        parent::__construct();
+        $this->firstRow = 0;
+        $this->lastRow  = 10;
+    }
 
     public function setJustFirst($value = true) {
         $this->justFirst = $value;

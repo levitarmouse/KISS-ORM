@@ -116,7 +116,8 @@ class PDOProxy
 
     public function execute($sQuery, $bind = array())
     {
-        $stmt = self :: prepare($sQuery . ';');
+        //$stmt = self :: prepare($sQuery . ';');
+        $stmt = self :: prepare($sQuery);
         foreach ($bind as $key => $value) {
             $b = $stmt->bindValue($key, $value);
         }

@@ -439,6 +439,10 @@ implements EntityInterface, CollectionInterface
 
     public function getNext()
     {
+        if ($this->collectionIndex == $this->collectionSize) {
+            return null;            
+        }
+        
         if ($this->collectionIndex < $this->collectionSize) {
 //        while ($this->collectionIndex < count($this->aCollection)) {
 //            if ($this->collectionIndex == 0) {
@@ -592,7 +596,7 @@ implements EntityInterface, CollectionInterface
         return $pkValue;
     }
 
-    protected function getValues($bOnlyChanges = false)
+    public function getValues($bOnlyChanges = false)
     {
         $aValues = array();
         // Devuelve los attribs de la clase en un array asociativo
@@ -746,6 +750,20 @@ implements EntityInterface, CollectionInterface
     public function getStatus()
     {
         return $this->objectStatus;
+    }
+    
+    public function fieldExist($name = '') {
+
+        $aFieldMapping = $this->oMapper->getFieldMapping();
+        
+        $exist = array_key_exists($name, $aFieldMapping);
+        
+        if (!$exist) {
+            $exist = in_array($name, $aFieldMapping);
+        }
+        
+        return $exist;
+        
     }
 
 }

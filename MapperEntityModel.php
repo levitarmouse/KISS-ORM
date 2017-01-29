@@ -410,6 +410,11 @@ implements EntityInterface,
                 if (isset($filterDTO->$classAttrib)) {
                     $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
                 }
+                
+                if (isset($filterDTO->$dbField)) {
+                    $aaFieldCompares[$dbField] = $filterDTO->$dbField;                    
+                }
+                
                 $first = false;
             }
 
@@ -466,18 +471,22 @@ implements EntityInterface,
                 $orderStr = " ORDER BY ";
 
                 $bFirst = true;
-                foreach ($orderFields as $field => $direction) {
+                if ($orderFields) {
+                    foreach ($orderFields as $field => $direction) {
 
-                    $comma = ($bFirst) ? ' ' : ', ';
+                        $comma = ($bFirst) ? ' ' : ', ';
 
-                    $orderStr .= $field." ".$direction.$comma;
+                        $orderStr .= $field." ".$direction.$comma;
 
-//                    if ($order->direction) {
-//                        $direction = $order->direction;
-//                        $orderStr .= " ".$direction;
-//                    }
+    //                    if ($order->direction) {
+    //                        $direction = $order->direction;
+    //                        $orderStr .= " ".$direction;
+    //                    }
 
-                    $bFirst = false;
+                        $bFirst = false;
+                    }                    
+                } else {
+                    $orderStr = "";
                 }
 
                 $sSql .= $orderStr;
@@ -486,16 +495,23 @@ implements EntityInterface,
             if ($page) {
                 $sSql .= ") page";
 
+                $from = (isset($page->firstRow) && is_numeric($page->firstRow)) ? $page->firstRow : 0;
+                $to   = (isset($page->lastRow)  && is_numeric($page->lastRow))  ? $page->lastRow  : 10;
+                
+//                $aBnd['pageStart'] = $page->firstRow;
+//                $aBnd['pageEnd'] = $page->lastRow;
+                
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
-                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
+//                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
+                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
                         break;
                     case 'ORACLE':
                         break;
                 }
 
-                $aBnd['pageStart'] = $page->firstRow;
-                $aBnd['pageEnd'] = $page->lastRow;
+//                $aBnd['pageStart'] = $page->firstRow;
+//                $aBnd['pageEnd'] = $page->lastRow;
 
                 $sSql .= $pageSql;
             }
