@@ -50,6 +50,9 @@ implements EntityInterface,
     protected $hasDescriptor = false;
 
     protected $dbEngineVendor = '';
+
+    public static $backTick;
+
     /**
      * __construct
      *
@@ -68,6 +71,7 @@ implements EntityInterface,
                 $this->dbEngineVendor = strtoupper(ORM_DB_ENGINE);
             } else {
                 $this->dbEngineVendor = 'MYSQL';
+                self::$backTick = chr(96);
             }
         }
 
@@ -80,7 +84,7 @@ implements EntityInterface,
 //        $descriptor = false;
 //        if ($dto->sFileDescriptorModel) {
 //            if (file_exists($dto->sFileDescriptorModel)) {
-//                $descriptor = true;                
+//                $descriptor = true;
 //            }
 ////            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
 ////                $bPathConf = true;
@@ -135,33 +139,33 @@ implements EntityInterface,
         foreach ($aConfig as $section => $aParameters) {
             if ($section == 'table' || $section == 'details') {
                 foreach ($aParameters as $attrib => $value) {
-                    $this->$attrib = $value;
+                    $this->$attrib = trim($value);
                 }
             }
             if ($section == 'fields') {
                 foreach ($aParameters as $index => $value) {
-                    $this->aFieldMapping[$index] = $value;
+                    $this->aFieldMapping[$index] = trim($value);
                 }
             }
             if ($section == 'primary_key') {
                 foreach ($aParameters as $index => $value) {
-                    $this->aFieldMappingPrimaryKeyAttribs[$index] = $value;
-                    $this->primary_key = $value;
+                    $this->aFieldMappingPrimaryKeyAttribs[$index] = trim($value);
+                    $this->primary_key = trim($value);
                 }
             }
             if ($section == 'unique_key') {
                 foreach ($aParameters as $index => $value) {
-                    $this->aFieldMappingUniqueKeyAttribs[$index] = $value;
+                    $this->aFieldMappingUniqueKeyAttribs[$index] = trim($value);
                 }
             }
             if ($section == 'fields_read') {
                 foreach ($aParameters as $index => $value) {
-                    $this->aFieldMappingRead[$index] = $value;
+                    $this->aFieldMappingRead[$index] = trim($value);
                 }
             }
             if ($section == 'fields_write') {
                 foreach ($aParameters as $index => $value) {
-                    $this->aFieldMappingWrite[$index] = $value;
+                    $this->aFieldMappingWrite[$index] = trim($value);
                 }
             }
         }
@@ -264,6 +268,8 @@ implements EntityInterface,
     {
 //        $id = $dto->id;
 
+        $bt = self::$backTick;
+
         $sSchema      = $this->schema;
         $sMainTable   = $this->table;
         $sIdFieldName = $this->primary_key;
@@ -285,7 +291,7 @@ implements EntityInterface,
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
-                        $sTemp = ' ' . $this->aFieldMappingRead[$dbField] . ' ';
+                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
                     }
                 }
                 $sSql .= ", {$sTemp} ";
@@ -301,7 +307,7 @@ implements EntityInterface,
                     break;
             }
 
-            $sWhere = " WHERE {$sIdFieldName} = :ID ";
+            $sWhere = " WHERE $bt{$sIdFieldName}$bt = :ID ";
 
             $aBnd = array('ID' => $id);
 
@@ -349,6 +355,8 @@ implements EntityInterface,
 
     public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
     {
+        $bt = self::$backTick;
+
         $sSchema      = $this->schema;
         $sMainTable   = $this->table;
 
@@ -362,6 +370,14 @@ implements EntityInterface,
 
             $order = $orderDto;
             $orderFields = $orderDto->getAttribs();
+        }
+        
+        $initSize = count($orderFields);
+        $orderFields = $this->transformClassAttribsToDBFields($orderFields);
+        $endSize = count($orderFields);
+        
+        if ($initSize != $endSize) {
+            throw new \Exception(self::ORDER_HAS_INVALID_FIELDS);
         }
 
         $page = null;
@@ -395,26 +411,26 @@ implements EntityInterface,
             $first = true;
             foreach ($this->aFieldMapping as $classAttrib => $dbField) {
 
-                $sTemp = " {$dbField} ";
+                $sTemp = "{$dbField}";
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
-                        $sTemp = ' ' . $this->aFieldMappingRead[$dbField] . ' ';
+                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
                     }
                 }
 
                 $comma = ($first) ? ' ' : ', ';
 
-                $sSql .= $comma. $sTemp;
+                $sSql .= $comma. $bt.$sTemp.$bt;
 
                 if (isset($filterDTO->$classAttrib)) {
                     $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
                 }
-                
+
                 if (isset($filterDTO->$dbField)) {
-                    $aaFieldCompares[$dbField] = $filterDTO->$dbField;                    
+                    $aaFieldCompares[$dbField] = $filterDTO->$dbField;
                 }
-                
+
                 $first = false;
             }
 
@@ -448,13 +464,13 @@ implements EntityInterface,
                         $i++;
                     }
 
-                    $sWhere .= " AND $dbField IN ($bindNames)";
+                    $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
                 } else {
                     $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
                     if ($bLike) {
-                        $sWhere .= " AND $dbField like :$dbField";
+                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
                     } else {
-                        $sWhere .= " AND $dbField = :$dbField";
+                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                     }
                     $aBnd[$dbField] = $value;
                 }
@@ -476,7 +492,7 @@ implements EntityInterface,
 
                         $comma = ($bFirst) ? ' ' : ', ';
 
-                        $orderStr .= $field." ".$direction.$comma;
+                        $orderStr .= $bt.$field.$bt." ".$direction.$comma;
 
     //                    if ($order->direction) {
     //                        $direction = $order->direction;
@@ -484,7 +500,7 @@ implements EntityInterface,
     //                    }
 
                         $bFirst = false;
-                    }                    
+                    }
                 } else {
                     $orderStr = "";
                 }
@@ -497,10 +513,10 @@ implements EntityInterface,
 
                 $from = (isset($page->firstRow) && is_numeric($page->firstRow)) ? $page->firstRow : 0;
                 $to   = (isset($page->lastRow)  && is_numeric($page->lastRow))  ? $page->lastRow  : 10;
-                
+
 //                $aBnd['pageStart'] = $page->firstRow;
 //                $aBnd['pageEnd'] = $page->lastRow;
-                
+
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
 //                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
@@ -528,6 +544,8 @@ implements EntityInterface,
 
             if (is_array($aResult)) {
                 return $aResult;
+            } else {
+                throw new \Exception($aResult);
             }
         }
         return array();
@@ -540,6 +558,8 @@ implements EntityInterface,
 
     public function create($aValues)
     {
+        $bt = self::$backTick;
+        
         $sLogValues = '';
         $sMainTable = $this->getTableName();
         $sSchema    = $this->getSchema();
@@ -563,7 +583,7 @@ implements EntityInterface,
 
                 $value = $this->_replaceConstant($value);
 
-                $sFields .= (!$bFirst) ? ', ' . $field : $field . '';
+                $sFields .= (!$bFirst) ? ', ' . $bt.$field.$bt : $bt.$field.$bt. '';
 
                 if ($valueExpresion !== null) {
                     $sValues .= (!$bFirst) ? ', ' . $valueExpresion : $valueExpresion;
@@ -628,6 +648,21 @@ implements EntityInterface,
         }
         return $value;
     }
+    
+    protected function transformClassAttribsToDBFields($attribsArray) {
+        $result = array();
+        
+        $fieldMapping = $this->aFieldMapping;
+        
+        foreach ($attribsArray as $key => $value) {
+            
+            if (isset($attribsArray[$key])) {
+                $result[$fieldMapping[$key]] = $value;                
+            }            
+        }
+        
+        return $result;
+    }
 
     private function _isAConstant($value)
     {
@@ -647,6 +682,8 @@ implements EntityInterface,
 
     public function modify($aValues, $aWhere)
     {
+        $bt = self::$backTick;
+        
         $sLogValues = $sLogWhere  = $sSetters = '';
         $sMainTable = $this->getTableName();
         if (count($aWhere) > 0 && count($aValues) > 0 && $sMainTable != '') {
@@ -705,7 +742,8 @@ implements EntityInterface,
                     $setExpresion = $value;
                 }
 
-                $sSetters .= ($bFirst) ? "{$field} = {$setExpresion}" : ", {$field} = {$setExpresion}";
+
+                $sSetters .= ($bFirst) ? "$bt{$field}$bt = {$setExpresion}" : ", $bt{$field}$bt = {$setExpresion}";
 
                 $bFirst = false;
 
@@ -717,7 +755,7 @@ implements EntityInterface,
             if (is_array($aWhere) && count($aWhere) > 0) {
                 foreach ($aWhere as $field => $value) {
                     $aBnd[$field] = $value;
-                    $sWhere .= " AND {$field} = :{$field}";
+                    $sWhere .= " AND $bt{$field}$bt = :{$field}";
 
                     // Logging
                     $sLogWhere .= $field . '->[' . $value . '] ';
@@ -737,7 +775,7 @@ implements EntityInterface,
 
             $iResult = $this->update($sSql, $aBnd, $sMainTable);
             if ($this->oLogger) {
-                $this->oLogger->logDebug("update ending with: ({$iResult})");                
+                $this->oLogger->logDebug("update ending with: ({$iResult})");
             }
             return $iResult;
         }
@@ -747,6 +785,8 @@ implements EntityInterface,
 
     public function remove($aWhere)
     {
+        $bt = self::$backTick;
+
         $sLogWhere  = '';
         $sMainTable = $this->getTableName();
         if (is_array($aWhere) && count($aWhere) > 0 && $sMainTable != '') {
@@ -759,7 +799,7 @@ implements EntityInterface,
 
             foreach ($aWhere as $field => $value) {
                 $aBnd[$field] = $value;
-                $sWhere .= " AND {$field} = :{$field}";
+                $sWhere .= " AND $bt{$field}$bt = :{$field}";
                 // Logging
                 $sLogWhere .= $field . '->[' . $value . '] ';
             }
@@ -771,7 +811,7 @@ implements EntityInterface,
 
             $iResult = $this->delete($sSql, $aBnd, $sMainTable);
             if ($this->oLogger) {
-                $this->oLogger->logDebug("delete ending with: ({$iResult})");                
+                $this->oLogger->logDebug("delete ending with: ({$iResult})");
             }
             return $iResult;
         }
@@ -845,12 +885,12 @@ EOQ;
                 $sLogValues .= @$field . '->[' . $value . '] ';
             }
             if ($this->logTrace()) {
-                $this->oLogger->logDbChanges("select from {$sMainTable} where {$sLogValues}", 'SELECT');                
+                $this->oLogger->logDbChanges("select from {$sMainTable} where {$sLogValues}", 'SELECT');
             }
 
             $aResult = $this->select($sSql, $aBnd);
             if ($this->oLogger) {
-                $this->oLogger->logDbChanges("result: " . serialize($aResult));                
+                $this->oLogger->logDbChanges("result: " . serialize($aResult));
             }
 
             if (is_array($aResult) && isset($aResult[0])) {

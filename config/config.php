@@ -1,6 +1,4 @@
 <?php
-//
-//define('CORE', 'levitarmouse');
 
 if (!defined('ROOT_PATH')) {
     define("ROOT_PATH", realpath(__DIR__."/../")."/");
@@ -15,9 +13,9 @@ $garbage = array_pop($aMockComposerAutoload);
 
 $mockComposerAutoload = implode('/', $aMockComposerAutoload)."/vendor/";
 
-//if (!defined('LOGS_PATH')) {
-//    define("LOGS_PATH", ROOT_PATH."logs/messages.logs");
-//}
+if (!defined('LOGS_PATH')) {
+    define("LOGS_PATH", ROOT_PATH."logs/messages.logs");
+}
 
 
 if (!defined('CONFIG_PATH')) {
@@ -30,17 +28,23 @@ $config_path = CONFIG_PATH;
 //}
 //$service_path = SERVICE_PATH;
 
-//if (!defined('BUSSINES_LOGIC_PATH')) {
-//    define("BUSSINES_LOGIC_PATH", ROOT_PATH.'src/');
-//}
-//$app_path = APP_PATH;
+if (!defined('BUSSINES_LOGIC_PATH')) {
+    define("BUSSINES_LOGIC_PATH", ROOT_PATH.'src/');
+}
+$app_path = BUSSINES_LOGIC_PATH;
 
-define("VENDOR_PATH", ROOT_PATH.'vendor/');
+if (!defined('ORM_MODELS_PATH')) {
+    define("ORM_MODELS_PATH", BUSSINES_LOGIC_PATH.'classes/');
+}
+
+if (!defined('VENDOR_PATH')) {
+    define("VENDOR_PATH", ROOT_PATH.'vendor/');
+}
 $vendorPath = VENDOR_PATH;
-    
-//if (!defined('DB_CONFIG')) {
-//	define ('DB_CONFIG', CONFIG_PATH.'database.ini');
-//}
+
+if (!defined('DB_CONFIG')) {
+	define ('DB_CONFIG', CONFIG_PATH.'database.ini');
+}
 
 define ('DTOs_SOURCE', ROOT_PATH.'dto');
 
@@ -53,8 +57,7 @@ $a_PSR0_Source[] = ROOT_PATH;
 $a_PSR0_Source[] = VENDOR_PATH;
 $a_PSR0_Source[] = DTOs_SOURCE;
 $a_PSR0_Source[] = INTERFACEs_SOURCE;
-//$aWebServicesPSR0[] = BUSSINES_LOGIC_PATH;
-//$aWebServicesPSR0[] = VENDOR_PATH;
+$a_PSR0_Source[] = BUSSINES_LOGIC_PATH;
 
 
 //$scriptName = filter_input(INPUT_SERVER, 'SCRIPT_NAME');
@@ -64,6 +67,4 @@ $a_PSR0_Source[] = INTERFACEs_SOURCE;
 
 //define('WWW_LINK_NAME', $linkName);
 
-
 require_once 'Autoload.php';
-

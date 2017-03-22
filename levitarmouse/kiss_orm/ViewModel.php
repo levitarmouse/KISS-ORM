@@ -34,7 +34,6 @@ use stdClass;
  */
 abstract class ViewModel extends \levitarmouse\core\Object implements CollectionInterface
 {
-
 //    const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
 //    const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
 //    const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
@@ -194,6 +193,15 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         $this->detectChanges($sAttrib, $oldValue, $newValue);
         $this->aData[$sAttrib] = $sValue;
     }
+    
+    public function setDetectChanges($value = true) {
+        
+        if ($value) {
+            $this->_isLoading = false;
+        } else {
+            $this->_isLoading = true;            
+        }
+    }
 
     protected function init($aRsValues)
     {
@@ -280,7 +288,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
             $this->aCollection = array();
         }
 
-        //$dto = new dto\ViewDTO($this->oDb, $this->oLogger);
+        $dto = new dto\ViewDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
 //            $obj = new $className($dto);
             $obj = new $className();
@@ -401,7 +409,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
                         $this->hasChanges |= true;
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
                         if ($this->oLogger) {
-                            $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
+                             $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
                                                          " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
                         }
                     }
@@ -464,5 +472,16 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
     public function getMapper()
     {
         return $this->oMapper;
+    }
+    
+    
+    public function fieldExist($name = '') {
+
+        $aFieldMapping = $this->oMapper->getFieldMapping();
+        
+        $exist = array_key_exists($name, $aFieldMapping);
+        
+        return $exist;
+        
     }
 }

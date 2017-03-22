@@ -23,6 +23,27 @@ class Database
     public function selectWithBindings($sSql, $aBindings)
     {
 
+        foreach ($aBindings as $key => $value) {
+            if (is_array($value)) {
+
+                $toReplace = ':'.$key;
+
+                $bndStr = '';
+                $first = true;
+                foreach ($value as $index => $bindValue) {
+                    $comma = ($first) ? '' : ', ';
+                    $bndStr .= $comma.':'.$key.$index;
+                    $aBindings[$key.$index] = $bindValue;
+                    $first = false;
+                }
+                
+                $sSql = str_replace($toReplace, $bndStr, $sSql);
+                
+                unset($aBindings[$key]);
+            }
+        }
+        
+        
 //        foreach ($aBindings as $key => $value) {
 //            $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
 //            if ($bLike) {

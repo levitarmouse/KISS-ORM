@@ -35,6 +35,7 @@ class Mapper extends \levitarmouse\core\Object
     const DISABLED           = 'DISABLED';
     const ENABLED            = 'ENABLED';
     const ANY_STRING         = 'ANY_STRING';
+    const ORDER_HAS_INVALID_FIELDS = 'ORDER_HAS_INVALID_FIELDS';
 
     protected static $instance = null;
     static $iCountSelect  = 0;
@@ -49,6 +50,8 @@ class Mapper extends \levitarmouse\core\Object
 //    public $oDb;
     public static $oDb;
     public $oLogger;
+    
+    public static $dbCfg;
 
     /**
      * __construct
@@ -74,11 +77,16 @@ class Mapper extends \levitarmouse\core\Object
         }
     }
     
+    public function getDbConfig() {
+        return self::$dbCfg;
+    }
+    
     public static function connect()
     {
         $dbConfigPath = DB_CONFIG;
 //        $logsConfigPath 
         $dbCfg = new \levitarmouse\core\ConfigIni($dbConfigPath);
+        self::$dbCfg = $dbCfg;
         
 //        $oProxy    = PDOProxy::getInstance($dbCfg);
         $oProxy = \levitarmouse\kiss_orm\database\PDOProxy::getInstance($dbCfg);
@@ -423,6 +431,11 @@ EOQ;
         return $this->aFieldMapping;
     }
 
+    public function getFieldMappingSize()
+    {
+        return count($this->aFieldMapping);
+    }
+
     /**
      *
      * @param type $sSql
@@ -430,7 +443,7 @@ EOQ;
      *
      * @return type
      */
-    public function select($sSql, $aBnd)
+    public function select($sSql, $aBnd = array() )
     {
         $db = self::$oDb;
         

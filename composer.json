@@ -2,8 +2,8 @@
     "name": "levitarmouse/kiss_orm",
     "description": "Active record ORM",
     "type": "library",
-    "require":{
-        "php" : "^5.5 || ^7.0",
+    "require": {
+        "php": "^5.5 || ^7.0",
         "levitarmouse/core": "1.1.*"
     },
     "authors": [
@@ -11,5 +11,12 @@
             "name": "Gabriel Prieto",
             "email": "levitarmouse@gmail.com"
         }
-    ]
+    ],
+    "scripts": {
+        "post-update-cmd": "",
+        "post-package-install": [],
+        "post-install-cmd": [],
+        "post-autoload-dump": [],
+        "post-create-project-cmd": []
+    }
 }

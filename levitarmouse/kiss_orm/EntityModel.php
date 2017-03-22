@@ -21,8 +21,8 @@ use levitarmouse\kiss_orm\dto\ModelDTO;
 use levitarmouse\kiss_orm\dto\OrderByDTO;
 use levitarmouse\kiss_orm\dto\PrimaryKeyDTO;
 use levitarmouse\kiss_orm\dto\UniqueKeyDTO;
-use levitarmouse\kiss_orm\interfaces\CollectionInterface;
-use levitarmouse\kiss_orm\interfaces\EntityInterface;
+//use levitarmouse\kiss_orm\interfaces\CollectionInterface;
+//use levitarmouse\kiss_orm\interfaces\EntityInterface;
 use stdClass;
 
 /**
@@ -36,9 +36,11 @@ use stdClass;
  * @link      LM
  */
 abstract class EntityModel extends \levitarmouse\core\Object
-implements EntityInterface, CollectionInterface
+implements interfaces\EntityInterface, interfaces\CollectionInterface
 {
 
+    const DESCRIPTOR_NOT_FOUND = 'DESCRIPTOR_NOT_FOUND';     // El descriptor del modelo es requerido
+    const DESCRIPTOR_INVALID = 'DESCRIPTOR_INVALID';     // El descriptor del modelo es requerido
     const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
     const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
     const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
@@ -78,8 +80,7 @@ implements EntityInterface, CollectionInterface
 
         $this->_dto = $dto;
 
-        $this->aCollection = array();
-        $this->collectionIndex = 0;
+        $this->clearCollection();
 
         if ($dto) {
             if ($dto->oDB) {
@@ -97,6 +98,23 @@ implements EntityInterface, CollectionInterface
         if ($this->descriptorLocation) {
             $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
         }
+        
+        $className = get_class($this);
+        
+        $validateDescriptor = false;
+        $aClassName = explode('\\', $className);
+        if ($aClassName) {
+            $className = array_pop($aClassName);
+            if ($className == 'GenericEntity') {
+                $validateDescriptor = false;
+            }
+        }
+        
+        if ($validateDescriptor) {
+            if (!file_exists($oModelDto->sFileDescriptorModel)) {
+                throw new Exception(self::DESCRIPTOR_NOT_FOUND);
+            }            
+        }
 
         $modelName = get_class($this) . 'Model';
         if (class_exists($modelName)) {
@@ -106,6 +124,15 @@ implements EntityInterface, CollectionInterface
         }
 
         $this->hasDescriptor = $this->oMapper->hasDescriptor();
+        
+        if ($this->hasDescriptor) {
+            $schema = $this->oMapper->getSchema();
+            $mappingSize = $this->oMapper->getFieldMappingSize();
+            
+            if (empty($schema) || $mappingSize == 0) {
+                throw new \Exception(self::DESCRIPTOR_INVALID);
+            }
+        }
 
         $this->aData        = array();
         $this->aListChange  = array();
@@ -123,6 +150,11 @@ implements EntityInterface, CollectionInterface
         }
     }
     
+    protected function clearCollection() {
+        $this->aCollection = array();
+        $this->collectionIndex = 0;
+    }
+    
     private function _locateSource($className) {
         
         $locationByName = str_replace('\\', '/', $className);
@@ -131,7 +163,11 @@ implements EntityInterface, CollectionInterface
         $ClassName = array_pop($aLocationByName);
         $ClassPSR0Location = implode('/', $aLocationByName);
         
-        $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;
+        $entityLocation = '';
+
+        if (defined('BUSSINES_LOGIC_PATH')) {
+            $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;            
+        }
         
         $this->descriptorLocation = $entityLocation;
         
@@ -364,9 +400,9 @@ implements EntityInterface, CollectionInterface
 
         $className = get_class($this);
 
-        $dto = new EntityDTO($this->oDb, $this->oLogger);
+//        $dto = new EntityDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
-            $obj = new $className($dto);
+            $obj = new $className();
             $obj->fill($row);
 
             $this->aCollection[] = $obj;
@@ -386,9 +422,9 @@ implements EntityInterface, CollectionInterface
             $this->aCollection = array();
         }
 
-        $dto = new EntityDTO($this->oDb, $this->oLogger);
+//        $dto = new EntityDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
-            $obj = new $className($dto);
+            $obj = new $className();
             $obj->fill($row);
 
             $this->aCollection[] = $obj;
@@ -407,6 +443,8 @@ implements EntityInterface, CollectionInterface
      */
     public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
     {
+        $this->clearCollection();
+        
         $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDto);
 
         $this->fillCollection($resultSet);
@@ -439,23 +477,25 @@ implements EntityInterface, CollectionInterface
 
     public function getNext()
     {
-        if ($this->collectionIndex == $this->collectionSize) {
-            return null;            
-        }
-        
-        if ($this->collectionIndex < $this->collectionSize) {
-//        while ($this->collectionIndex < count($this->aCollection)) {
-//            if ($this->collectionIndex == 0) {
-//                $index = 0;
-//                $this->collectionIndex ++;
-//            } else {
-                $index = $this->collectionIndex;
-                $this->collectionIndex ++;
-//            }
-//            $index = ($this->collectionIndex == 0 ) ? 0 : $this->collectionIndex + 1;
-            $return = $this->aCollection[$index];
+        if ($this->collectionSize > 0) {
+            if ($this->collectionIndex == $this->collectionSize) {
+                return null;            
+            }
 
-            return $return;
+            if ($this->collectionIndex < $this->collectionSize) {
+    //        while ($this->collectionIndex < count($this->aCollection)) {
+    //            if ($this->collectionIndex == 0) {
+    //                $index = 0;
+    //                $this->collectionIndex ++;
+    //            } else {
+                    $index = $this->collectionIndex;
+                    $this->collectionIndex ++;
+    //            }
+    //            $index = ($this->collectionIndex == 0 ) ? 0 : $this->collectionIndex + 1;
+                $return = $this->aCollection[$index];
+
+                return $return;
+            }
         } else {
             return $this;
         }
