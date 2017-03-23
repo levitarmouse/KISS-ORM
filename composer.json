@@ -1,6 +1,7 @@
 {
     "name": "levitarmouse/kiss_orm",
     "description": "Active record ORM",
+    "license": "proprietary",
     "type": "library",
     "require": {
         "php": "^5.5 || ^7.0",
@@ -16,7 +17,7 @@
         "post-update-cmd": [],
         "post-package-install": ["php -r \"shell_exec('mkdir -p config/kiss_orm');\"",
                                  "php -r \"shell_exec('cp ./vendor/levitarmouse/kiss_orm/config/database.ini ./config/kiss_orm');\"",
-                                 "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/kissGen.php .')\""],
+                                 "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/kissGen.php .');\""],
         "post-install-cmd": [],
         "post-autoload-dump": [],
         "post-create-project-cmd": []
