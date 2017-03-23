@@ -38,8 +38,19 @@ class PDOProxy
             \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
         );
 
-        self::$_link = new \PDO($dsn, $user, $password, $opciones);
-        self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        try {
+            self::$_link = new \PDO($dsn, $user, $password, $opciones);
+            self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);            
+        } catch (\Exception $ex) {
+            $message = new \levitarmouse\core\Response();
+            echo PHP_EOL;
+            echo PHP_EOL;
+            $message->setError(\levitarmouse\core\Response::DB_ACCESS_DENIED);
+            
+            echo $message->errorDescription.PHP_EOL;
+            echo PHP_EOL;
+            echo PHP_EOL;
+        }
 
 //        foreach ($attributes as $k => $v) {
 //            $link->setAttribute(constant("PDO::{$k}")
@@ -95,6 +106,10 @@ class PDOProxy
     protected static function prepare($sSql)
     {
         $link = self::$_link;
+        
+        if (!$link) {
+            throw new \Exception(\levitarmouse\core\Response::DB_ACCESS_FAILED);
+        }
         $stmt = $link->prepare($sSql);
         return $stmt;
     }

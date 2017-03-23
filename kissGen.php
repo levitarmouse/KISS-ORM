@@ -26,12 +26,10 @@ $tables = array();
 // AS: Table Name-> array index. Class name -> value;
 
 if (file_exists('tables.ini')) {
-    echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ...".PHP_EOL;
+    echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ..." . PHP_EOL;
     $listTables = parse_ini_file('tables.ini', true);
 
     $tables = $listTables['tables'];
-
-    
 } else {
     $tables['users'] = 'User';
     $tables[] = '';
@@ -40,31 +38,31 @@ if (file_exists('tables.ini')) {
 $nTables = count($tables);
 if ($nTables >= 1) {
     echo PHP_EOL;
-    echo "   "."f=======================================================".PHP_EOL;
-    echo "   "."|            "."Tables           |        Classes       ".PHP_EOL;
-    echo "   "."L_____________________________|_______________________".PHP_EOL;
+    echo "   " . "f=======================================================" . PHP_EOL;
+    echo "   " . "|            " . "Tables           |        Classes       " . PHP_EOL;
+    echo "   " . "L_____________________________|_______________________" . PHP_EOL;
     foreach ($tables as $tabla => $class) {
         $tableName = str_pad($tabla, 24, '_', STR_PAD_LEFT);
         $className = str_pad($class, 24, ' ', STR_PAD_RIGHT);
 
-        echo "   "."L_____".$tableName.'|'.$className.PHP_EOL;
+        echo "   " . "L_____" . $tableName . '|' . $className . PHP_EOL;
     }
     echo PHP_EOL;
 } else {
-    echo "   "."f=======================================================".PHP_EOL;
-    echo "   "."|   No se halló configuración para generar descriptors  ".PHP_EOL;
-    echo "   "."L=======================================================".PHP_EOL;
+    echo "   " . "f=======================================================" . PHP_EOL;
+    echo "   " . "|   No se halló configuración para generar descriptors  " . PHP_EOL;
+    echo "   " . "L=======================================================" . PHP_EOL;
 }
 
 // Query base of DescGen engine!
 $query = 'desc ';
 
-// Empety Model to execute simple queries through ORM SMapper
+// Empty Model to execute simple queries through ORM SMapper
 $model = new \levitarmouse\kiss_orm\GenericEntity();
 
 // Retrive Database configuration
 $dbConfig = new \levitarmouse\core\ConfigIni(__DIR__ . '/config/database.ini');
-$dbname   = $dbConfig->get('mysql.dbname');
+$dbname = $dbConfig->get('mysql.dbname');
 
 $destination = DESCRIPTORS_PATH;
 
@@ -73,106 +71,110 @@ if (!file_exists($destination)) {
 
     if ($bMkDir) {
         echo "---------------------------------------------";
-        echo "--- Se creó la carpeta ".$destination.PHP_EOL;
+        echo "--- Se creó la carpeta " . $destination . PHP_EOL;
         echo "---------------------------------------------";
         echo PHP_EOL;
-        echo "En ella se almacenarán los descriptores y Classes asociadas al ORM".PHP_EOL;
+        echo "En ella se almacenarán los descriptores y Classes asociadas al ORM" . PHP_EOL;
     } else {
-        echo "No se pudo crear la carpeta :".$destination.PHP_EOL;
-        echo "Se requieren permisos sobre el sistema de archivos para hacerlo!".PHP_EOL;
+        echo "No se pudo crear la carpeta :" . $destination . PHP_EOL;
+        echo "Se requieren permisos sobre el sistema de archivos para hacerlo!" . PHP_EOL;
         die;
     }
-
 }
 
 $output = array();
 
 $continue = false;
-foreach ($tables as $table => $className) {
 
-    $result = $model->getMapper()->select($query . ' ' . $table);
+try {
+    
+    foreach ($tables as $table => $className) {
 
-    $primaryKey = array();
-    if ($result) {
+        $result = $model->getMapper()->select($query . ' ' . $table);
 
-        $descriptor = fopen($destination . '/' . $className . '.ini', 'w+');
+        $primaryKey = array();
+        if (is_array($result)) {
 
-        $secTable  = '[table]'.PHP_EOL;
-        $secTable .= 'schema = '.$dbname.PHP_EOL;
-        $secTable .= 'table  = '.$table.PHP_EOL;
-        $secTable .= PHP_EOL;
+            $descriptor = fopen($destination . '/' . $className . '.ini', 'w+');
 
-        fwrite($descriptor, $secTable);
+            $secTable = '[table]' . PHP_EOL;
+            $secTable .= 'schema = ' . $dbname . PHP_EOL;
+            $secTable .= 'table  = ' . $table . PHP_EOL;
+            $secTable .= PHP_EOL;
 
-        $details  = '[details]'.PHP_EOL.PHP_EOL;
-        fwrite($descriptor, $details);
+            fwrite($descriptor, $secTable);
 
-        $fields  = '[fields]'.PHP_EOL;
-        fwrite($descriptor, $fields);
+            $details = '[details]' . PHP_EOL . PHP_EOL;
+            fwrite($descriptor, $details);
 
-        foreach ($result as $key => $value) {
+            $fields = '[fields]' . PHP_EOL;
+            fwrite($descriptor, $fields);
 
-            $field = $value['Field'];
+            foreach ($result as $key => $value) {
 
-            $Type    = str_pad($value['Type'], 13, ' ', STR_PAD_RIGHT);
-            $Null    = str_pad($value['Null'], 13, ' ', STR_PAD_RIGHT);
-            $pk      = str_pad($value['Key'], 13, ' ', STR_PAD_RIGHT);
-            $Default = str_pad($value['Default'], 13, ' ', STR_PAD_RIGHT);
-            $Extra   = str_pad($value['Extra'], 13, ' ', STR_PAD_RIGHT);
+                $field = $value['Field'];
 
-            $line1 = str_pad($field, 20, ' ', STR_PAD_RIGHT).' = ';
-            $line2 = str_pad(strtoupper($field), 20, ' ', STR_PAD_RIGHT).' ; ';
-            $line3 = $Type.' |'.$Null.' |'.$pk.' |'.$Default.' |'.$Extra;
+                $Type = str_pad($value['Type'], 13, ' ', STR_PAD_RIGHT);
+                $Null = str_pad($value['Null'], 13, ' ', STR_PAD_RIGHT);
+                $pk = str_pad($value['Key'], 13, ' ', STR_PAD_RIGHT);
+                $Default = str_pad($value['Default'], 13, ' ', STR_PAD_RIGHT);
+                $Extra = str_pad($value['Extra'], 13, ' ', STR_PAD_RIGHT);
 
-            $line = $line1.$line2.$line3.PHP_EOL;
+                $line1 = str_pad($field, 20, ' ', STR_PAD_RIGHT) . ' = ';
+                $line2 = str_pad(strtoupper($field), 20, ' ', STR_PAD_RIGHT) . ' ; ';
+                $line3 = $Type . ' |' . $Null . ' |' . $pk . ' |' . $Default . ' |' . $Extra;
 
-            fwrite($descriptor, $line);
+                $line = $line1 . $line2 . $line3 . PHP_EOL;
 
-            $bPK = (strtoupper(trim($pk)) == 'PRI');
-            if ($bPK) {
-                $primaryKey[$field] = strtoupper($field);
+                fwrite($descriptor, $line);
+
+                $bPK = (strtoupper(trim($pk)) == 'PRI');
+                if ($bPK) {
+                    $primaryKey[$field] = strtoupper($field);
+                }
             }
 
-        }
+            $fields = PHP_EOL . '[fields_read]' . PHP_EOL;
+            fwrite($descriptor, $fields);
 
-        $fields  = PHP_EOL.'[fields_read]'.PHP_EOL;
-        fwrite($descriptor, $fields);
+            $fields = PHP_EOL . '[fields_write]' . PHP_EOL;
+            fwrite($descriptor, $fields);
 
-        $fields  = PHP_EOL.'[fields_write]'.PHP_EOL;
-        fwrite($descriptor, $fields);
+            $fields = PHP_EOL . '[primary_key]' . PHP_EOL;
+            fwrite($descriptor, $fields);
 
-        $fields  = PHP_EOL.'[primary_key]'.PHP_EOL;
-        fwrite($descriptor, $fields);
+            if (count($primaryKey) > 0) {
+                foreach ($primaryKey as $primaryKeyattrib => $primaryKeyfield) {
+                    $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT) . ' = ' . $primaryKeyfield . PHP_EOL;
+                    fwrite($descriptor, $pkString);
+                }
+            }
 
-        if (count($primaryKey) > 0) {
-            foreach ($primaryKey as $primaryKeyattrib => $primaryKeyfield) {
-                $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT).' = '.$primaryKeyfield.PHP_EOL;
-                fwrite($descriptor, $pkString);
+            $fields = PHP_EOL . '[unique_key]' . PHP_EOL;
+            fwrite($descriptor, $fields);
+
+            fclose($descriptor);
+
+            $continue = true;
+
+            makePhpClass($result, $className);
+        } else {
+            $output[] = $result;
+            $output[] = "Revise el archivo config/database.ini";
+            foreach ($output as $msg) {
+                echo $msg.PHP_EOL.PHP_EOL;                
             }
         }
-
-        $fields  = PHP_EOL.'[unique_key]'.PHP_EOL;
-        fwrite($descriptor, $fields);
-
-        fclose($descriptor);
-
-        $continue = true;
-
-        makePhpClass($result, $className);
-
-
-    } else {
-        echo json_encode($output);
     }
+} catch (\Exception $ex) {
+    echo "Se produjo un error. "."Revise la configuración de la base de datos en el archivo config/database.ini".PHP_EOL;
 }
-
-
 
 
 function makePhpClass($result, $className) {
 
     global $destination;
-    $file = $destination.'/'.$className.'.php';
+    $file = $destination . '/' . $className . '.php';
 
     $phpFile = fopen($file, 'w+');
 
@@ -201,10 +203,9 @@ CODE;
         $field = $value['Field'];
         $field = str_pad($field, 15, ' ', STR_PAD_RIGHT);
 
-        $type  = $value['Type'];
+        $type = $value['Type'];
 
-        $properties .= ' * @property $'.$field.'      '.$type.PHP_EOL;
-
+        $properties .= ' * @property $' . $field . '      ' . $type . PHP_EOL;
     }
 
     $code = str_replace('{{properties}}', $properties, $code);
