@@ -13,8 +13,10 @@
         }
     ],
     "scripts": {
-        "post-update-cmd": "",
-        "post-package-install": [],
+        "post-update-cmd": ["php -r \"shell_exec('mkdir -p config/kiss_orm');\"",
+                            "php -r \"shell_exec('cp ./vendor/kiss_orm/config/database.ini ./config/kiss_orm');\""],
+        "post-package-install": ["php -r \"shell_exec('mkdir -p config/kiss_orm');\"",
+                                 "php -r \"shell_exec('cp ./vendor/levitarmouse/kiss_orm/config/database.ini ./config/kiss_orm');\""],
         "post-install-cmd": [],
         "post-autoload-dump": [],
         "post-create-project-cmd": []
