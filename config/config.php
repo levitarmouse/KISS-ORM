@@ -13,9 +13,7 @@ $garbage = array_pop($aRootProjectPath);
 $garbage = array_pop($aRootProjectPath);
 $garbage = array_pop($aRootProjectPath);
 
-
-
-$mockComposerAutoload = implode('/', $aRootProjectPath)."/vendor/";
+//$mockComposerAutoload = implode('/', $aRootProjectPath)."/vendor/";
 
 $mockConfigPath       = implode('/', $aRootProjectPath)."/config/";
 
@@ -29,7 +27,7 @@ $descriptorsPath      = implode('/', $aRootProjectPath)."/descriptors/";
 if (!defined('CONFIG_PATH')) {
     define("CONFIG_PATH", $mockConfigPath);
 }
-$config_path = CONFIG_PATH;
+//$config_path = CONFIG_PATH;
 
 //if (!defined('SERVICE_PATH')) {
 //    define("SERVICE_PATH", ROOT_PATH.'services/');
@@ -41,24 +39,24 @@ if (!defined('DESCRIPTORS_PATH')) {
 }
 //$app_path = APP_PATH;
 
-define("VENDOR_PATH", ROOT_PATH.'vendor/');
-$vendorPath = VENDOR_PATH;
+//define("VENDOR_PATH", ROOT_PATH.'vendor/');
+//$vendorPath = VENDOR_PATH;
     
 if (!defined('DB_CONFIG')) {
 	define ('DB_CONFIG', CONFIG_PATH.'database.ini');
 }
 
-define ('DTOs_SOURCE', ROOT_PATH.'dto');
+//define ('DTOs_SOURCE', ROOT_PATH.'dto');
 
-define ('INTERFACEs_SOURCE', ROOT_PATH.'interfaces');
+//define ('INTERFACEs_SOURCE', ROOT_PATH.'interfaces');
 
 
-$a_PSR0_Source = array();
-$a_PSR0_Source[] = $mockComposerAutoload; // for alone use
-$a_PSR0_Source[] = ROOT_PATH;
-$a_PSR0_Source[] = VENDOR_PATH;
-$a_PSR0_Source[] = DTOs_SOURCE;
-$a_PSR0_Source[] = INTERFACEs_SOURCE;
+//$a_PSR0_Source = array();
+//$a_PSR0_Source[] = $mockComposerAutoload; // for alone use
+//$a_PSR0_Source[] = ROOT_PATH;
+//$a_PSR0_Source[] = VENDOR_PATH;
+//$a_PSR0_Source[] = DTOs_SOURCE;
+//$a_PSR0_Source[] = INTERFACEs_SOURCE;
 //$aWebServicesPSR0[] = BUSSINES_LOGIC_PATH;
 //$aWebServicesPSR0[] = VENDOR_PATH;
 
@@ -71,5 +69,5 @@ $a_PSR0_Source[] = INTERFACEs_SOURCE;
 //define('WWW_LINK_NAME', $linkName);
 
 
-require_once 'Autoload.php';
+//require_once 'Autoload.php';
 

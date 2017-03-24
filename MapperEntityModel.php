@@ -366,6 +366,7 @@ implements EntityInterface,
         }
 
         $order = null;
+        $orderFields = array();
         if ($orderDto) {
 
             $order = $orderDto;

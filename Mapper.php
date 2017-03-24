@@ -9,7 +9,6 @@
  * @copyright 2012 LM
  * @link      LM
  */
-
 namespace levitarmouse\kiss_orm;
 
 use \Exception;

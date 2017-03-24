@@ -13,6 +13,9 @@
 
 namespace levitarmouse\kiss_orm;
 
+$path = realpath(__DIR__);
+include_once $path.'/config/config.php';
+
 use Exception;
 use levitarmouse\kiss_orm\dto\EntityDTO;
 use levitarmouse\kiss_orm\dto\GetByFilterDTO;
@@ -64,7 +67,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
     //public $oTvTopology;
     public $oLogger;
     public $oDb;
-    
+
     protected $descriptorLocation;
 
     protected $aCollection;
@@ -74,34 +77,36 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
     protected $_dto;
 
 //    function __construct(EntityDTO $dto)
-    function __construct(EntityDTO $dto = null)
+    function __construct(EntityDTO $dto = null, $modelPath)
     {
-        $this->_locateSource(get_class($this));
+        $bussinesLogicPath = $modelPath;
 
-        $this->_dto = $dto;
+        $this->_locateSource($bussinesLogicPath);
+
+//        $this->_dto = $dto;
 
         $this->clearCollection();
 
-        if ($dto) {
-            if ($dto->oDB) {
-                $this->oDb = $dto->oDB;
-            }
-            if ($dto->oLogger) {
-                $this->oLogger = new DbLogger($dto->oLogger);
-            }            
-        }
+//        if ($dto) {
+//            if ($dto->oDB) {
+//                $this->oDb = $dto->oDB;
+//            }
+//            if ($dto->oLogger) {
+//                $this->oLogger = new DbLogger($dto->oLogger);
+//            }
+//        }
 
         $sFileDescriptor = $this->getFileDescriptorByConvention();
 
         $oModelDto     = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
-        
+
         if ($this->descriptorLocation) {
             $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
         }
-        
+
         $className = get_class($this);
-        
-        $validateDescriptor = false;
+
+        $validateDescriptor = true;
         $aClassName = explode('\\', $className);
         if ($aClassName) {
             $className = array_pop($aClassName);
@@ -109,11 +114,11 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
                 $validateDescriptor = false;
             }
         }
-        
+
         if ($validateDescriptor) {
             if (!file_exists($oModelDto->sFileDescriptorModel)) {
                 throw new Exception(self::DESCRIPTOR_NOT_FOUND);
-            }            
+            }
         }
 
         $modelName = get_class($this) . 'Model';
@@ -124,11 +129,11 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         }
 
         $this->hasDescriptor = $this->oMapper->hasDescriptor();
-        
+
         if ($this->hasDescriptor) {
             $schema = $this->oMapper->getSchema();
             $mappingSize = $this->oMapper->getFieldMappingSize();
-            
+
             if (empty($schema) || $mappingSize == 0) {
                 throw new \Exception(self::DESCRIPTOR_INVALID);
             }
@@ -149,28 +154,28 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
             }
         }
     }
-    
+
     protected function clearCollection() {
         $this->aCollection = array();
         $this->collectionIndex = 0;
     }
-    
+
     private function _locateSource($className) {
-        
+
         $locationByName = str_replace('\\', '/', $className);
-        
+
         $aLocationByName = explode('/', $locationByName);
-        $ClassName = array_pop($aLocationByName);
-        $ClassPSR0Location = implode('/', $aLocationByName);
-        
+//        $ClassName = array_pop($aLocationByName);
+        $classFullPathLocation = implode('/', $aLocationByName);
+
         $entityLocation = '';
 
-        if (defined('BUSSINES_LOGIC_PATH')) {
-            $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;            
-        }
-        
-        $this->descriptorLocation = $entityLocation;
-        
+//        if (defined('BUSSINES_LOGIC_PATH')) {
+//            $entityLocation = BUSSINES_LOGIC_PATH.$classFullPathLocation;
+//        }
+
+        $this->descriptorLocation = $classFullPathLocation;
+
     }
 
     protected function loadByPK(PrimaryKeyDTO $pkDTO)
@@ -396,6 +401,8 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 
     public function getAll()
     {
+        $this->clearCollection();
+
         $resultSet = $this->oMapper->getAll();
 
         $className = get_class($this);
@@ -408,7 +415,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
             $this->aCollection[] = $obj;
         }
         unset($resultSet);
-        
+
         $this->collectionSize = count($this->aCollection);
 
         return $this->aCollection;
@@ -444,7 +451,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
     public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
     {
         $this->clearCollection();
-        
+
         $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDto);
 
         $this->fillCollection($resultSet);
@@ -477,10 +484,10 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 
     public function getNext()
     {
+//        if ($this->collectionIndex == $this->collectionSize) {
+//            return null;
+//        }
         if ($this->collectionSize > 0) {
-            if ($this->collectionIndex == $this->collectionSize) {
-                return null;            
-            }
 
             if ($this->collectionIndex < $this->collectionSize) {
     //        while ($this->collectionIndex < count($this->aCollection)) {
@@ -497,7 +504,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
                 return $return;
             }
         } else {
-            return $this;
+//            return $this;
         }
     }
 
@@ -592,13 +599,13 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         $iResult = 0;
 
         $aPrimaryKey = $this->oMapper->getFieldMappingPrimaryKey();
-        
+
         if ($aPrimaryKey) {
             $aUniqueKey = $aPrimaryKey;
         } else {
             $aUniqueKey = $this->oMapper->getFieldMappingUniqueKey();
         }
-        
+
         if (is_array($aUniqueKey) && count($aUniqueKey) > 0) {
             try {
                 foreach ($aUniqueKey as $sField => $sAttrib) {
@@ -687,7 +694,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
                         if ($this->oLogger) {
                             $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
-                                                             " | old value -> [{$oldValue}] | new value -> [{$newValue}]");                            
+                                                             " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
                         }
                     }
                 }
@@ -791,19 +798,19 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
     {
         return $this->objectStatus;
     }
-    
+
     public function fieldExist($name = '') {
 
         $aFieldMapping = $this->oMapper->getFieldMapping();
-        
+
         $exist = array_key_exists($name, $aFieldMapping);
-        
+
         if (!$exist) {
             $exist = in_array($name, $aFieldMapping);
         }
-        
+
         return $exist;
-        
+
     }
 
 }
