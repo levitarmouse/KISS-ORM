@@ -76,12 +76,15 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 
     protected $_dto;
 
+    protected $path;
+    
 //    function __construct(EntityDTO $dto)
-    function __construct(EntityDTO $dto = null, $modelPath)
+//    function __construct(EntityDTO $dto = null, $modelPath = null)
+    function __construct(EntityDTO $dto = null)
     {
-        $bussinesLogicPath = $modelPath;
+//        $bussinesLogicPath = $modelPath;
 
-        $this->_locateSource($bussinesLogicPath);
+        $bussinesLogicPath = $this->_locateSource();
 
 //        $this->_dto = $dto;
 
@@ -160,21 +163,27 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         $this->collectionIndex = 0;
     }
 
-    private function _locateSource($className) {
+    private function _locateSource() {
 
-        $locationByName = str_replace('\\', '/', $className);
-
-        $aLocationByName = explode('/', $locationByName);
-//        $ClassName = array_pop($aLocationByName);
-        $classFullPathLocation = implode('/', $aLocationByName);
-
-        $entityLocation = '';
+//        $reflector = new \ReflectionClass("Child");
+         $rc = new \ReflectionClass(get_class($this));
+         $dirname = dirname($rc->getFileName());
+//        return dirname($fn);
+        
+        
+//        $locationByName = str_replace('\\', '/', $className);
+//
+//        $aLocationByName = explode('/', $locationByName);
+////        $ClassName = array_pop($aLocationByName);
+//        $classFullPathLocation = implode('/', $aLocationByName);
+//
+//        $entityLocation = '';
 
 //        if (defined('BUSSINES_LOGIC_PATH')) {
 //            $entityLocation = BUSSINES_LOGIC_PATH.$classFullPathLocation;
 //        }
 
-        $this->descriptorLocation = $classFullPathLocation;
+        $this->descriptorLocation = $dirname;
 
     }
 

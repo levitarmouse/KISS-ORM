@@ -12,6 +12,7 @@
 //}
 
 include_once 'config/config.php';
+include_once 'config/Autoload.php';
 
 echo "---------------------------------------------";
 echo PHP_EOL;

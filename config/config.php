@@ -13,7 +13,7 @@ $garbage = array_pop($aRootProjectPath);
 $garbage = array_pop($aRootProjectPath);
 $garbage = array_pop($aRootProjectPath);
 
-//$mockComposerAutoload = implode('/', $aRootProjectPath)."/vendor/";
+$mockComposerAutoload = implode('/', $aRootProjectPath)."/vendor/";
 
 $mockConfigPath       = implode('/', $aRootProjectPath)."/config/";
 
@@ -51,8 +51,8 @@ if (!defined('DB_CONFIG')) {
 //define ('INTERFACEs_SOURCE', ROOT_PATH.'interfaces');
 
 
-//$a_PSR0_Source = array();
-//$a_PSR0_Source[] = $mockComposerAutoload; // for alone use
+$a_PSR0_Source = array();
+$a_PSR0_Source[] = $mockComposerAutoload; // for alone use
 //$a_PSR0_Source[] = ROOT_PATH;
 //$a_PSR0_Source[] = VENDOR_PATH;
 //$a_PSR0_Source[] = DTOs_SOURCE;

@@ -14,5 +14,5 @@ namespace levitarmouse\kiss_orm;
  * @author gabriel
  */
 class GenericEntity extends EntityModel {
-    //put your code here
+
 }
