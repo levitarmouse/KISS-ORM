@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": "^5.5 || ^7.0",
-        "levitarmouse/core": "1.*"
+        "levitarmouse/core": "dev-1.*"
     },
     "authors": [
         {
