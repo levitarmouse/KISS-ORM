@@ -1,4 +1,10 @@
 {
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/levitarmouse/KISS-CORE"
+        }
+    ],
     "name": "levitarmouse/kiss_orm",
     "description": "Active record ORM",
     "license": "proprietary",
