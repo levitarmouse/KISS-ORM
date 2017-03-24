@@ -19,10 +19,6 @@ $mockConfigPath       = implode('/', $aRootProjectPath)."/config/";
 
 $descriptorsPath      = implode('/', $aRootProjectPath)."/descriptors/";
 
-//if (!defined('LOGS_PATH')) {
-//    define("LOGS_PATH", ROOT_PATH."logs/messages.logs");
-//}
-
 
 if (!defined('CONFIG_PATH')) {
     define("CONFIG_PATH", $mockConfigPath);
