@@ -205,7 +205,6 @@ class $className extends \levitarmouse\kiss_orm\EntityModel
 CODE;
 
     $properties = '';
-    $first = true;
     foreach ($result as $key => $value) {
 
         $field = $value['Field'];
@@ -213,10 +212,7 @@ CODE;
 
         $type = $value['Type'];
 
-        $nl = ($first) ? PHP_EOL : '';
-        
-        $properties .= $nl.' * @property $' . $field . '      ' . $type ;
-        $first = false;
+        $properties .= PHP_EOL.' * @property $' . $field . '      ' . $type ;
     }
 
     $code = str_replace('{{properties}}', $properties, $code);
