@@ -11,9 +11,6 @@
 //    }
 //}
 
-include_once 'config/config.php';
-include_once 'config/Autoload.php';
-
 echo "---------------------------------------------";
 echo PHP_EOL;
 echo "--- Inciando autogeneración de Descriptores";
@@ -54,6 +51,15 @@ if ($nTables >= 1) {
     echo "   " . "|   No se halló configuración para generar descriptors  " . PHP_EOL;
     echo "   " . "L=======================================================" . PHP_EOL;
 }
+
+////////////////////////////////////////////
+// INCLUSIÓN NECESARIA 
+// Previo al primer uso de kiss_orm
+////////////////////////////////////////////
+if (file_exists('./config/kissorm/Bootstrap.php')) {
+    include_once './config/kissorm/Bootstrap.php';    
+}
+
 
 // Query base of DescGen engine!
 $query = 'desc ';
