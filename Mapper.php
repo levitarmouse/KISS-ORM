@@ -447,7 +447,7 @@ EOQ;
         $db = self::$oDb;
         
         $aResult = null;
-        try {
+//        try {
             if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
@@ -477,14 +477,14 @@ EOQ;
 //                    }
 //                }
 //            }
-        }
-        catch (Exception $e) {
-            if ($this->oLogger) {
-                $this->oLogger->logDebug($e->getMessage());                
-            }
-            $aResult = $e->getMessage();
-//            $this->logTrace();
-        }
+//        }
+//        catch (Exception $e) {
+//            if ($this->oLogger) {
+//                $this->oLogger->logDebug($e->getMessage());                
+//            }
+//            $aResult = $e->getMessage();
+////            $this->logTrace();
+//        }
         return $aResult;
     }
 
