@@ -8,54 +8,74 @@ class PDOProxy
 
     private function __construct(\levitarmouse\core\ConfigIni $DbConfig)
     {
-//        $dbCfg = $cfg['mysql'];
-        $cfg = $DbConfig->get('mysql');
-        
-        $Config  = array(
-            'dsn'           => array('host' => $cfg->host, 'dbname' => $cfg->dbname),
-            'db_driver'     => $cfg->driver,
-            'db_user'       => $cfg->user,
-            'db_password'   => $cfg->pass,
-            'db_options'    => '',
-            'db_attributes' => '',
-        );
+        $engine = $DbConfig->get('DEFAULT.EngineToUse');
 
-        $driver     = $Config["db_driver"];
-        $user       = $Config["db_user"];
-        $password   = $Config["db_password"];
-        $options    = $Config["db_options"];
-        $attributes = $Config["db_attributes"];
+        $engine = strtoupper($engine);
 
-        $dsn        = strtolower($driver).":";
+        $cfg = $DbConfig->get($engine);
 
-        $dsns = array();
-        foreach ($Config ["dsn"] as $k => $v) {
-            $dsns[] = "{$k}={$v}";
+        $driver = $cfg->driver;
+
+        $cfgDbname = isset($cfg->dbname) ? $cfg->dbname : null;
+        $cfgDriver = isset($cfg->driver) ? $cfg->driver : null;
+        $cfgHost   = isset($cfg->host)   ? $cfg->host   : null;
+        $cfgPass   = isset($cfg->pass)   ? $cfg->pass   : null;
+        $cfgPort   = isset($cfg->port)   ? $cfg->port   : null;
+        $cfgSid    = isset($cfg->sid)    ? $cfg->sid    : null;
+        $cfgTns    = isset($cfg->tns)    ? $cfg->tns    : null;
+        $cfgUser   = isset($cfg->user)   ? $cfg->user   : null;
+
+        switch (strtolower($cfgDriver)) {
+            case 'mysql':
+                $Config = array(
+                    'dsn' => array('host' => $cfgHost, 'dbname' => $cfgDbname),
+                    'db_driver' => $cfgDriver,
+                    'db_user' => $cfgUser,
+                    'db_password' => $cfgPass,
+                    'db_options' => '',
+                    'db_attributes' => '',
+                );
+
+                $driver = $Config["db_driver"];
+                $user = $Config["db_user"];
+                $password = $Config["db_password"];
+                $options = $Config["db_options"];
+                $attributes = $Config["db_attributes"];
+
+                $dsn = strtolower($driver) . ":";
+
+                $dsns = array();
+                foreach ($Config ["dsn"] as $k => $v) {
+                    $dsns[] = "{$k}={$v}";
+                }
+                $dsn = $dsn . implode(';', $dsns);
+
+                $opciones = array(
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+                );
+
+                try {
+                    self::$_link = new \PDO($dsn, $user, $password, $opciones);
+                    self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                } catch (\Exception $ex) {
+                    $message = new \levitarmouse\core\Response();
+
+                    $message->setError(\levitarmouse\core\Response::DB_ACCESS_DENIED);
+
+                    echo $message->errorDescription . PHP_EOL;
+                }
+                break;
+            case 'oracledb':
+                throw new \Exception(\levitarmouse\core\Response::DB_DRIVER_NOT_IMPLEMENTED);        
+                break;
+            case 'mongodb':
+                throw new \Exception(\levitarmouse\core\Response::DB_DRIVER_NOT_IMPLEMENTED);            
+                break;
+            default:
+                throw new \Exception(\levitarmouse\core\Response::DB_INVALID_DRIVER);            
+                break;
         }
-        $dsn = $dsn . implode(';', $dsns);
 
-        $opciones = array(
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-        );
-
-        try {
-            self::$_link = new \PDO($dsn, $user, $password, $opciones);
-            self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);            
-        } catch (\Exception $ex) {
-            $message = new \levitarmouse\core\Response();
-            echo PHP_EOL;
-            echo PHP_EOL;
-            $message->setError(\levitarmouse\core\Response::DB_ACCESS_DENIED);
-            
-            echo $message->errorDescription.PHP_EOL;
-            echo PHP_EOL;
-            echo PHP_EOL;
-        }
-
-//        foreach ($attributes as $k => $v) {
-//            $link->setAttribute(constant("PDO::{$k}")
-//                , constant("PDO::{$v}"));
-//        }
         return;
     }
 
@@ -106,7 +126,7 @@ class PDOProxy
     protected static function prepare($sSql)
     {
         $link = self::$_link;
-        
+
         if (!$link) {
             throw new \Exception(\levitarmouse\core\Response::DB_ACCESS_FAILED);
         }
