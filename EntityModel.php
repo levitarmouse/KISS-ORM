@@ -14,7 +14,7 @@
 namespace levitarmouse\kiss_orm;
 
 $path = realpath(__DIR__);
-include_once $path.'/config/config.php';
+include_once $path.'/config/Bootstrap.php';
 
 use Exception;
 use levitarmouse\kiss_orm\dto\EntityDTO;
