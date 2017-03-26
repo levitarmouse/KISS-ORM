@@ -43,7 +43,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 {
 
     const DESCRIPTOR_NOT_FOUND = 'DESCRIPTOR_NOT_FOUND';     // El descriptor del modelo es requerido
-    const DESCRIPTOR_INVALID = 'DESCRIPTOR_INVALID';     // El descriptor del modelo es requerido
+    const INVALID_DESCRIPTOR = 'INVALID_DESCRIPTOR';     // El descriptor del modelo es requerido
     const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
     const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
     const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
@@ -138,7 +138,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
             $mappingSize = $this->oMapper->getFieldMappingSize();
 
             if (empty($schema) || $mappingSize == 0) {
-                throw new \Exception(self::DESCRIPTOR_INVALID);
+                throw new \Exception(self::INVALID_DESCRIPTOR);
             }
         }
 

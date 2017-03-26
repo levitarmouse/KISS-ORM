@@ -69,7 +69,10 @@ $model = new \levitarmouse\kiss_orm\GenericEntity();
 
 // Retrive Database configuration
 $dbConfig = new \levitarmouse\core\ConfigIni(__DIR__ . '/config/database.ini');
-$dbname = $dbConfig->get('mysql.dbname');
+
+$engine = $dbConfig->get('DEFAULT.EngineToUse');
+
+$dbname = $dbConfig->get($engine.'.dbname');
 
 $destination = DESCRIPTORS_PATH;
 
