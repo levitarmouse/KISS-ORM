@@ -99,7 +99,7 @@ $tables = array();
         $destination = DESCRIPTORS_PATH;
 
         if (!file_exists($destination)) {
-            $bMkDir = mkdir($destination, 0777, true);
+            @$bMkDir = mkdir($destination, 0777, true);
 
             if ($bMkDir) {
 
@@ -110,8 +110,17 @@ $tables = array();
                 echo EOL;
                 echo "En ella se almacenarán los descriptores y Classes asociadas al ORM" . EOL;
             } else {
+                echo EOL;
+                echo "Sin embargo ...". EOL;
+                echo EOL;
                 echo "No se pudo crear la carpeta :" . $destination . EOL;
+                echo EOL;
                 echo "Se requieren permisos sobre el sistema de archivos para hacerlo!" . EOL;
+                echo EOL;
+                echo "Sino acceda desde una consola a la carpeta:".EOL;
+                echo realpath(__DIR__."/../../../"). EOL;
+                echo " y ejecute el siguiente comando:".EOL;
+                echo '$ php kissGen.php'.EOL;
                 die;
             }
         }
@@ -127,6 +136,8 @@ $tables = array();
             $showInfo = false;
 
             foreach ($tables as $table => $data) {
+
+                $psr0Path = '';
 
                 $info = new stdClass();
 
@@ -151,17 +162,21 @@ $tables = array();
 
                 $aNameSpace = array_map('trim', $aNameSpace);
 
-                if ($aNameSpace > 1) {
+                $psr0Destination = $destination;
+                if (count($aNameSpace) > 1) {
 
                     $psr0Path = implode('/', $aNameSpace);
 
                     $psr0Destination = $destination.$psr0Path;
-
+                    
+                    echo " destination".$destination.PHP_EOL;
+                    echo "Creando la carpeta ".$psr0Destination.PHP_EOL;
+                    
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
                     }
 
-                    $destination = $psr0Destination;
+//                    $destination = $psr0Destination;
                 }
 
                 $result = $model->getMapper()->select($query . ' ' . $table);
@@ -177,7 +192,7 @@ $tables = array();
                         $className = ucfirst($table);
                     }
 
-                    $descriptor = fopen($destination . '/' . $className . '.ini', 'w+');
+                    $descriptor = fopen($psr0Destination . '/' . $className . '.ini', 'w+');
 
                     $secTable  = '[table]' . PHP_EOL;
                     $secTable .= 'schema = ' . $dbname . PHP_EOL;
@@ -239,7 +254,7 @@ $tables = array();
 
                     $continue = true;
 
-                    makePhpClass($result, $className, $aNameSpace);
+                    makePhpClass($result, $className, $aNameSpace, $psr0Destination);
 
                     $info->className = $className;
                     $info->nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
@@ -255,7 +270,7 @@ $tables = array();
                 }
             }
 
-            setPermissions($destination);
+//            setPermissions($destination);
 
             $showInfo = true;
 
@@ -266,33 +281,32 @@ $tables = array();
 
         if ($showInfo) {
             echo EOL;
-            echo "   " . "|========================================================================================|" . EOL;
-            echo "   " . "|==    SE GENERARON LOS DESCRIPTORES Y CLASSES DE LOS SIGUIENTE OBJETOS     =============|" . EOL;
-            echo "   " . "|========================================================================================|" . EOL;
-            echo "   " . "|____________" . "Tables___________|_________Classes________|___________Namespaces____________|" . EOL;
+            echo "   " . "|=====================================================================================|" . EOL;
+            echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS           |" . EOL;
+            echo "   " . "|======== TABLAS ========|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
 //                $oData = extractModelData($data);
 
-                $tableName = str_pad($data->tableName.'  ', 24, '_', STR_PAD_LEFT);
-                $className = str_pad($data->className.'  ', 24, ' ', STR_PAD_RIGHT);
-                $nameSpace = str_pad($data->nameSpace.'  ', 33, ' ', STR_PAD_RIGHT);
+                $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
+                $className = str_pad('  '.$data->className.'  ', 22, ' ', STR_PAD_RIGHT);
+                
+                if (empty(trim($className))) {
+                    $className = str_pad('<- No se creó Class   ', 22, ' ', STR_PAD_RIGHT);
 
-                echo "   " . "L_____" . $tableName . '|' . $className . '|' . $nameSpace .'|'. EOL;
+                }
+                
+                $nameSpace = str_pad('  '.$data->nameSpace.'  ', 37, ' ', STR_PAD_RIGHT);
+
+                echo "   " . "\_____" . $tableName . '|' . $className . '|' . $nameSpace .'|'. EOL;
             }
             echo EOL;
         }
-//        else {
-//            echo "   " . "|=======================================================" . EOL;
-//            echo "   " . "|   No se halló configuración para generar descriptores  " . EOL;
-//            echo "   " . "|=======================================================" . EOL;
-//        }
-
-
-
-
-
-
+        else {
+            echo "   " . "|=======================================================" . EOL;
+            echo "   " . "|   No se halló configuración para generar descriptores  " . EOL;
+            echo "   " . "|=======================================================" . EOL;
+        }
 
 
 if ($client != 'cli') {
@@ -350,10 +364,11 @@ function extractModelData($data) {
 }
 
 
-function makePhpClass($result, $className, $aNameSpace) {
+function makePhpClass($result, $className, $aNameSpace, $psr0Destination = '') {
 
-    global $destination;
-    $file = $destination . '/' . $className . '.php';
+//    global $destination;
+    
+    $file = $psr0Destination . '/' . $className . '.php';
 
     $phpFile = fopen($file, 'w+');
 
