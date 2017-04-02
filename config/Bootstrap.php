@@ -1,9 +1,9 @@
 <?php
 
-if (!defined('ROOT_PATH')) {
-    define("ROOT_PATH", realpath(__DIR__."/../")."/");
+if (!defined('KISSORM_ROOT_PATH')) {
+    define("KISSORM_ROOT_PATH", realpath(__DIR__."/../")."/");
 }
-$root_path = ROOT_PATH;
+$root_path = KISSORM_ROOT_PATH;
 
 $aRootProjectPath = explode('/', $root_path);
 $garbage = array_pop($aRootProjectPath);
@@ -15,16 +15,16 @@ $composerInstalationPath = implode('/', $aRootProjectPath)."/vendor/";
 $configPath              = implode('/', $aRootProjectPath)."/config/kissorm/";
 $descriptorsPath         = implode('/', $aRootProjectPath)."/descriptors/";
 
-if (!defined('CONFIG_PATH')) {
-    define("CONFIG_PATH", $configPath);
+if (!defined('KISSORM_CONFIG_PATH')) {
+    define("KISSORM_CONFIG_PATH", $configPath);
 }
 
-if (!defined('DESCRIPTORS_PATH')) {
-    define("DESCRIPTORS_PATH", $descriptorsPath);
+if (!defined('KISSORM_DESCRIPTORS_PATH')) {
+    define("KISSORM_DESCRIPTORS_PATH", $descriptorsPath);
 }
 
-if (!defined('DB_CONFIG')) {
-	define ('DB_CONFIG', CONFIG_PATH.'database.ini');
+if (!defined('KISSORM_DB_CONFIG')) {
+	define ('KISSORM_DB_CONFIG', KISSORM_CONFIG_PATH.'database.ini');
 }
 
 function kissOrmAutoloader($sFullClassName) {

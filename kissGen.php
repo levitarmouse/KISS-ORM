@@ -96,7 +96,7 @@ $tables = array();
 
         $dbname = $dbConfig->get($engine.'.dbname');
 
-        $destination = DESCRIPTORS_PATH;
+        $destination = KISSORM_DESCRIPTORS_PATH;
 
         if (!file_exists($destination)) {
             @$bMkDir = mkdir($destination, 0777, true);

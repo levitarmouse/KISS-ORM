@@ -82,7 +82,7 @@ class Mapper extends \levitarmouse\core\Object
     
     public static function connect()
     {
-        $dbConfigPath = DB_CONFIG;
+        $dbConfigPath = KISSORM_DB_CONFIG;
 //        $logsConfigPath 
         $dbCfg = new \levitarmouse\core\ConfigIni($dbConfigPath);
         self::$dbCfg = $dbCfg;
