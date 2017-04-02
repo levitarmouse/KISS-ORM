@@ -165,24 +165,10 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 
     private function _locateSource() {
 
-//        $reflector = new \ReflectionClass("Child");
-         $rc = new \ReflectionClass(get_class($this));
-         $dirname = dirname($rc->getFileName());
-//        return dirname($fn);
-        
-        
-//        $locationByName = str_replace('\\', '/', $className);
-//
-//        $aLocationByName = explode('/', $locationByName);
-////        $ClassName = array_pop($aLocationByName);
-//        $classFullPathLocation = implode('/', $aLocationByName);
-//
-//        $entityLocation = '';
+        $rc = new \ReflectionClass(get_class($this));
+        $dirname = dirname($rc->getFileName());
 
-//        if (defined('BUSSINES_LOGIC_PATH')) {
-//            $entityLocation = BUSSINES_LOGIC_PATH.$classFullPathLocation;
-//        }
-
+        
         $this->descriptorLocation = $dirname;
 
     }
@@ -493,21 +479,13 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
 
     public function getNext()
     {
-//        if ($this->collectionIndex == $this->collectionSize) {
-//            return null;
-//        }
         if ($this->collectionSize > 0) {
 
             if ($this->collectionIndex < $this->collectionSize) {
-    //        while ($this->collectionIndex < count($this->aCollection)) {
-    //            if ($this->collectionIndex == 0) {
-    //                $index = 0;
-    //                $this->collectionIndex ++;
-    //            } else {
+
                     $index = $this->collectionIndex;
                     $this->collectionIndex ++;
-    //            }
-    //            $index = ($this->collectionIndex == 0 ) ? 0 : $this->collectionIndex + 1;
+
                 $return = $this->aCollection[$index];
 
                 return $return;
@@ -554,6 +532,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
                 $this->objectStatus = self::CREATE_OK;
                 $return = '';
             } else {
+                \levitarmouse\tools\logs\Logger::log($iResult);
                 $this->objectStatus = self::CREATE_FAILED;
                 $return = "MAPPED_ENTITY_FAILED_TO_CREATE_[" . get_class($this) . "]_INSTANCE | Details: [{$iResult}]";
             }

@@ -287,7 +287,7 @@ implements EntityInterface,
 
             foreach ($this->aFieldMapping as $classAttrib => $dbField) {
 
-                $sTemp = " {$dbField} ";
+                $sTemp = $dbField;
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
@@ -597,7 +597,7 @@ implements EntityInterface,
     public function create($aValues)
     {
         $bt = self::$backTick;
-        
+
         $sLogValues = '';
         $sMainTable = $this->getTableName();
         $sSchema    = $this->getSchema();
