@@ -409,7 +409,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
                         $this->hasChanges |= true;
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
                         if ($this->oLogger) {
-                             $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
+                            $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
                                                          " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
                         }
                     }

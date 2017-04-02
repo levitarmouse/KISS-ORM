@@ -294,7 +294,7 @@ implements EntityInterface,
                         $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
                     }
                 }
-                $sSql .= ", {$sTemp} ";
+                $sSql .= ", ".$bt.$sTemp.$bt." ";
             }
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
@@ -468,9 +468,46 @@ implements EntityInterface,
                     $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
                 } else {
                     $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
+                    $bGT   = strlen(strstr($value, '$GT.')) > 1;
+                    $bGTE  = strlen(strstr($value, '$GTE.')) > 1;
+                    $bLT   = strlen(strstr($value, '$LT.')) > 1;
+                    $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
+                    $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
+
                     if ($bLike) {
                         $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
-                    } else {
+                    }
+                    else if ($bGT) {
+                        $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
+                        $value = str_replace('$GT.', '', $value);
+                    }
+                    else if ($bGTE) {
+                        $sWhere .= " AND $bt{$dbField}$bt >= :$dbField";
+                        $value = str_replace('$GTE.', '', $value);
+                    }
+                    else if ($bLT) {
+                        $sWhere .= " AND $bt{$dbField}$bt < :$dbField";
+                        $value = str_replace('$LT.', '', $value);
+                    }
+                    else if ($bLTE) {
+                        $sWhere .= " AND $bt{$dbField}$bt <= :$dbField";
+                        $value = str_replace('$LTE.', '', $value);
+                    }
+                    else if ($bBTW) {
+                        list($simbol, $btwFrom, $btwTo) = explode('.',$value);
+                        
+                        $dateH = date_create($btwFrom);
+                        date_sub($dateH, date_interval_create_from_date_string('1 day'));
+                        $btwFrom = date_format($dateH, 'Y-m-d');
+                        
+                        $dateH = date_create($btwTo);
+                        date_add($dateH, date_interval_create_from_date_string('1 day'));
+                        $btwTo = date_format($dateH, 'Y-m-d');
+                        
+                        $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
+                        $value = str_replace($simbol, '', $value);
+                    }
+                    else {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                     }
                     $aBnd[$dbField] = $value;
@@ -684,7 +721,7 @@ implements EntityInterface,
     public function modify($aValues, $aWhere)
     {
         $bt = self::$backTick;
-        
+
         $sLogValues = $sLogWhere  = $sSetters = '';
         $sMainTable = $this->getTableName();
         if (count($aWhere) > 0 && count($aValues) > 0 && $sMainTable != '') {
