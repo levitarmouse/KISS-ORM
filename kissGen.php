@@ -146,9 +146,9 @@ $tables = array();
                 $info->className = '';
                 $info->nameSpace = '';
 
-                $tableExist = validateTableName($table);
+                $objectType = validateTable($table);
 
-                if (!$tableExist) {
+                if (!$objectType) {
                     echo PHP_EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.PHP_EOL;
                     $resultTables[] = $info;
                     continue;
@@ -254,7 +254,7 @@ $tables = array();
 
                     $continue = true;
 
-                    makePhpClass($result, $className, $aNameSpace, $psr0Destination);
+                    makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destination);
 
                     $info->className = $className;
                     $info->nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
@@ -283,7 +283,7 @@ $tables = array();
             echo EOL;
             echo "   " . "|=====================================================================================|" . EOL;
             echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS           |" . EOL;
-            echo "   " . "|======== TABLAS ========|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
+            echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
 //                $oData = extractModelData($data);
@@ -364,9 +364,12 @@ function extractModelData($data) {
 }
 
 
-function makePhpClass($result, $className, $aNameSpace, $psr0Destination = '') {
+function makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destination = '') {
 
 //    global $destination;
+    $isView = preg_match('(VIEW)', strtoupper($objectType));
+    
+    $parentName = ($isView) ? 'ViewModel' : 'EntityModel';
     
     $file = $psr0Destination . '/' . $className . '.php';
 
@@ -383,7 +386,7 @@ function makePhpClass($result, $className, $aNameSpace, $psr0Destination = '') {
  *
 {{properties}}
  */
-class $className extends \levitarmouse\kiss_orm\EntityModel
+class $className extends \levitarmouse\kiss_orm\\{$parentName}
 {
 
 }
@@ -435,7 +438,7 @@ function setPermissions($path) {
 
 
 
-function validateTableName($tableName) {
+function validateTable($tableName) {
 
     global $dbConfig;
 
@@ -446,8 +449,13 @@ function validateTableName($tableName) {
     switch ($engine) {
         default:
         case 'MYSQL':
-            $query  = ' SHOW TABLES from '.$dbname;
-            $query .= " WHERE Tables_in_{$dbname} = '{$tableName}'";
+//            $query  = 'SELECT *
+            $query = <<< QUERY
+                SELECT TABLE_TYPE
+                  FROM information_schema.tables
+                 WHERE TABLE_SCHEMA = '{$dbname}'
+                   AND TABLE_NAME = '{$tableName}'
+QUERY;
             break;
     }
 
@@ -455,8 +463,7 @@ function validateTableName($tableName) {
 
         $result = $model->getMapper()->select($query);
 
-    if (count($result) == 1) {
-        return true;
-    }
-    return false;
+    $type = (isset($result[0]['TABLE_TYPE'])) ? $result[0]['TABLE_TYPE'] : '';
+
+    return $type;
 }
