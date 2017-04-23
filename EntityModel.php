@@ -41,14 +41,6 @@ use stdClass;
 abstract class EntityModel extends ViewModel
 implements interfaces\EntityInterface, interfaces\CollectionInterface
 {
-    const ALREADY_EXISTS   = 'ALREADY_EXISTS'; // Ya existe en la DB
-    const CREATE_OK        = 'CREATE_OK';      // Se creó en la DB
-    const CREATE_FAILED    = 'CREATE_FAILED';  // Falló la creación en la DB
-    const UPDATE_OK        = 'UPDATE_OK';      // Se modificó en la DB
-    const UPDATE_FAILED    = 'UPDATE_FAILED';  // Falló la modificación en la DB
-    const REMOVAL_OK       = 'REMOVAL_OK';     // Se eliminó en la DB
-    const REMOVAL_FAILED   = 'REMOVAL_FAILED'; // Falló la eliminación en la DB
-
     /**
      * Returns the next sequence id
      *

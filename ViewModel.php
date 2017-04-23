@@ -36,12 +36,19 @@ use stdClass;
 abstract class ViewModel
                 extends \levitarmouse\core\Object
 {
+    const ALREADY_EXISTS   = 'ALREADY_EXISTS'; // Ya existe en la DB
+    const CREATE_FAILED    = 'CREATE_FAILED';  // Falló la creación en la DB
+    const CREATE_OK        = 'CREATE_OK';      // Se creó en la DB
     const DESCRIPTOR_NOT_FOUND = 'DESCRIPTOR_NOT_FOUND';     // El descriptor del modelo es requerido
+    const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
+    const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
     const INVALID_DESCRIPTOR = 'INVALID_DESCRIPTOR';     // El descriptor del modelo es requerido
     const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
-    const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
-    const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
-
+    const REMOVAL_FAILED   = 'REMOVAL_FAILED'; // Falló la eliminación en la DB
+    const REMOVAL_OK       = 'REMOVAL_OK';     // Se eliminó en la DB
+    const UPDATE_FAILED    = 'UPDATE_FAILED';  // Falló la modificación en la DB
+    const UPDATE_OK        = 'UPDATE_OK';      // Se modificó en la DB
+    
     protected $oMapper;
 
     protected $hasDescriptor;
@@ -54,10 +61,6 @@ abstract class ViewModel
     public $oDb;
 
     protected $descriptorLocation;
-
-    protected $aCollection;
-    protected $collectionIndex;
-    protected $collectionSize;
 
     protected $_dto;
 
@@ -131,11 +134,6 @@ abstract class ViewModel
                 $this->loadByUK($dto->ukDTO);
             }
         }
-    }
-
-    protected function clearCollection() {
-        $this->aCollection = array();
-        $this->collectionIndex = 0;
     }
 
     protected function _locateSource() {
@@ -281,13 +279,13 @@ abstract class ViewModel
             $obj = new $className();
             $obj->fill($row);
 
-            $this->aCollection[] = $obj;
+            $this->add($obj);
         }
         unset($resultSet);
 
-        $this->collectionSize = count($this->aCollection);
+        $this->collectionSize = $this->getCollectionSize();
 
-        return $this->aCollection;
+        return $this->getCollection();
     }
 
     protected function fillCollection($resultSet)
@@ -295,14 +293,14 @@ abstract class ViewModel
         $className = get_class($this);
 
         if (count($resultSet) >= 1) {
-            $this->aCollection = array();
+            $this->clearCollection();
         }
 
         foreach ($resultSet as $key => $row) {
             $obj = new $className();
             $obj->fill($row);
 
-            $this->aCollection[] = $obj;
+            $this->add($obj);
         }
         unset($resultSet);
     }
@@ -330,9 +328,9 @@ abstract class ViewModel
             return;
         }
 
-        $this->collectionSize = count($this->aCollection);
+        $this->collectionSize = $this->getCollectionSize();
 
-        return $this->aCollection;
+        return $this->getCollection();
     }
 
     /* ********************************************
