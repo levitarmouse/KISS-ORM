@@ -1,26 +1,19 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace levitarmouse\kiss_orm\dto;
 
-/**
- * Description of CollectionDTO
- *
- * @author gprieto
- */
-class CollectionDTO
-{
-    public $oDB;
-    public $oLogger;
+final class CollectionDTO {
+    public $type;
+    public $size;
 
-    function __construct($oDB = null, $oLogger = null)
-    {
-        $this->oDB     = $oDB;
-        $this->oLogger = $oLogger;
+    protected $index;
+    
+    use levitarmouse\core\LmIterator;
+
+    public function __construct() {
+        $this->size = 0;
+        $this->type = '';
+        $this->aCollection = array();
+        $this->index = 0;
     }
 }

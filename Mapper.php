@@ -267,7 +267,7 @@ EOQ;
         $iResult = 0;
         try {
             if (!$db) {
-                throw new Exception(__CLASS__.' DbConection not present');
+                throw new \Exception(__CLASS__.' DbConection not present');
             }
             else {
                 $iTimeStart = (microtime(true));
@@ -286,7 +286,7 @@ EOQ;
                 }
             }
         }
-        catch (Exception $e) {
+        catch (\Exception $e) {
             if ($this->oLogger) {
                 $this->oLogger->logDebug($e->getMessage());
             }
@@ -447,13 +447,14 @@ EOQ;
         $db = self::$oDb;
         
         $aResult = null;
-//        try {
+
             if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
             }
-//            else {
+
                 $iTimeStart = (microtime(true));
                 $aResult = $db->selectWithBindings($sSql, $aBnd);
+                
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 
@@ -463,19 +464,7 @@ EOQ;
                 self::$iCountAction ++;
                 self::$fTime += $fTime;
 
-//                if ($this->oLogger) {
-//                    $this->oLogger->logDbTimes("SELECT Time: ".$fTime." s | ".
-//                                              "Accum Ops: ".self::$iCountAction." | ".
-//                                              "Accum Time: ".self::$fTime);
-//
-//                    if (Config::LOG_DB_EXEC_PLAN) {
-//                        $aBnd = array();
-//                        $aExecPlan = $db->sqlOpenForBinding('SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR)', $aBnd);
-//                        foreach ($aExecPlan as $row) {
-//                            $this->oLogger->logDebug($row['PLAN_TABLE_OUTPUT']);
-//                        }
-//                    }
-//                }
+
 //            }
 //        }
 //        catch (Exception $e) {
@@ -550,11 +539,12 @@ QUERY;
         return $aResult;
     }
 
-    protected function logTrace()
+    protected function logTrace($message = '')
     {
-        if ($this->oLogger) {
-//            $this->oLogger->logTrace();
+        if ($message) {
+            levitarmouse\core\Logger::logWarning($message);
         }
+        
         return;
     }
 

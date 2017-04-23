@@ -1,5 +1,4 @@
 <?php
-
 /**
  * EntityModel class
  *
@@ -13,13 +12,15 @@
 
 namespace levitarmouse\kiss_orm;
 
+$path = realpath(__DIR__);
+include_once $path.'/config/Bootstrap.php';
+
 use Exception;
 use levitarmouse\kiss_orm\dto\EntityDTO;
 use levitarmouse\kiss_orm\dto\GetByFilterDTO;
 use levitarmouse\kiss_orm\dto\LimitDTO;
 use levitarmouse\kiss_orm\dto\ModelDTO;
 use levitarmouse\kiss_orm\dto\OrderByDTO;
-use levitarmouse\kiss_orm\interfaces\CollectionInterface;
 use stdClass;
 
 /**
@@ -32,29 +33,23 @@ use stdClass;
  * @copyright 2012 LM
  * @link      LM
  */
-abstract class ViewModel extends \levitarmouse\core\Object implements CollectionInterface
+abstract class ViewModel
+                extends \levitarmouse\core\Object
 {
-//    const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
-//    const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
-//    const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
-//    const ALREADY_EXISTS   = 'ALREADY_EXISTS'; // Ya existe en la DB
-//    const CREATE_OK        = 'CREATE_OK';      // Se creó en la DB
-//    const CREATE_FAILED    = 'CREATE_FAILED';  // Falló la creación en la DB
-//    const UPDATE_OK        = 'UPDATE_OK';      // Se modificó en la DB
-//    const UPDATE_FAILED    = 'UPDATE_FAILED';  // Falló la modificación en la DB
-//    const REMOVAL_OK       = 'REMOVAL_OK';     // Se eliminó en la DB
-//    const REMOVAL_FAILED   = 'REMOVAL_FAILED'; // Falló la eliminación en la DB
+    const DESCRIPTOR_NOT_FOUND = 'DESCRIPTOR_NOT_FOUND';     // El descriptor del modelo es requerido
+    const INVALID_DESCRIPTOR = 'INVALID_DESCRIPTOR';     // El descriptor del modelo es requerido
+    const NO_CREATED       = 'NO_CREATED';     // No existe en la DB
+    const FILLED_BY_OBJECT = 'FILLED_BY_OBJECT'; // Se populó con otro objeto
+    const FILLED_BY_ARRAY  = 'FILLED_BY_ARRAY'; // Se populó con un array
 
     protected $oMapper;
 
-//    protected $hasDescriptor;
-//    protected $exists;
-//    protected $aListChange;
-//    protected $hasChanges;
-    protected $aData;
-    private $_isLoading;
-//    public $objectStatus;
-    //public $oTvTopology;
+    protected $hasDescriptor;
+    protected $exists;
+    protected $aListChange;
+    protected $hasChanges;
+    protected $_isLoading;
+    public $objectStatus;
     public $oLogger;
     public $oDb;
 
@@ -66,30 +61,41 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
 
     protected $_dto;
 
-    function __construct(dto\ViewDTO $dto = null)
+    protected $path;
+    
+    use \levitarmouse\core\LmIterator;
+
+    function __construct(EntityDTO $dto = null)
     {
-        $this->_locateSource(get_class($this));
+        parent::__construct();
 
-        $this->_dto = $dto;
+        $this->_locateSource();
 
-        $this->aCollection = array();
-        $this->collectionIndex = 0;
-
-        if ($dto) {
-            if ($dto->oDB) {
-                $this->oDb = $dto->oDB;
-            }
-            if ($dto->oLogger) {
-                $this->oLogger = new DbLogger($dto->oLogger);
-            }            
-        }
+        $this->clearCollection();
 
         $sFileDescriptor = $this->getFileDescriptorByConvention();
 
-        $oModelDto     = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
+        $oModelDto = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
 
         if ($this->descriptorLocation) {
             $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
+        }
+
+        $className = get_class($this);
+
+        $validateDescriptor = true;
+        $aClassName = explode('\\', $className);
+        if ($aClassName) {
+            $className = array_pop($aClassName);
+            if ($className == 'GenericEntity') {
+                $validateDescriptor = false;
+            }
+        }
+
+        if ($validateDescriptor) {
+            if (!file_exists($oModelDto->sFileDescriptorModel)) {
+                throw new Exception(self::DESCRIPTOR_NOT_FOUND);
+            }
         }
 
         $modelName = get_class($this) . 'Model';
@@ -101,34 +107,45 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
 
         $this->hasDescriptor = $this->oMapper->hasDescriptor();
 
-        $this->aData        = array();
+        if ($this->hasDescriptor) {
+            $schema = $this->oMapper->getSchema();
+            $mappingSize = $this->oMapper->getFieldMappingSize();
+
+            if (empty($schema) || $mappingSize == 0) {
+                throw new \Exception(self::INVALID_DESCRIPTOR);
+            }
+        }
+
         $this->aListChange  = array();
         $this->exists       = false;
         $this->hasChanges   = false;
         $this->_isLoading   = false;
-//        $this->objectStatus = self::NO_CREATED;
+        $this->objectStatus = self::NO_CREATED;
 
-//        if ($dto->pkDTO) {
-//            $this->loadByPK($dto->pkDTO);
-//        } else if ($dto->ukDTO) {
-//            $this->loadByUK($dto->ukDTO);
-//        }
+        $this->collectionEnd = false;
+
+        if ($dto) {
+            if ($dto->pkDTO) {
+                $this->loadByPK($dto->pkDTO);
+            } else if ($dto->ukDTO) {
+                $this->loadByUK($dto->ukDTO);
+            }
+        }
     }
 
-    private function _locateSource($className) {
-        
-        $locationByName = str_replace('\\', '/', $className);
-        
-        $aLocationByName = explode('/', $locationByName);
-        $ClassName = array_pop($aLocationByName);
-        $ClassPSR0Location = implode('/', $aLocationByName);
-        
-        $entityLocation = BUSSINES_LOGIC_PATH.$ClassPSR0Location;
-        
-        $this->descriptorLocation = $entityLocation;
-        
+    protected function clearCollection() {
+        $this->aCollection = array();
+        $this->collectionIndex = 0;
     }
-    
+
+    protected function _locateSource() {
+
+        $rc = new \ReflectionClass(get_class($this));
+        $dirname = dirname($rc->getFileName());
+
+        $this->descriptorLocation = $dirname;
+    }
+
     /**
      * Returns a file descriptor
      *
@@ -147,6 +164,16 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
     }
 
     /**
+     * Checks if this entity exists
+     *
+     * @return boolean
+     */
+    public function exists()
+    {
+        return $this->exists;
+    }
+
+    /**
      * @brief Inicializa los atributos de la clase desde el ResultSet
      * pasado como parametro.
      *
@@ -154,36 +181,25 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
      *
      * @return type
      */
-    private function _initClassAttribs($aRsValues, $aFieldMapping)
+    protected function _initClassAttribs($aRsValues, $aFieldMapping)
     {
         $this->exists = false;
 
         if (is_array($aRsValues) && count($aRsValues) > 0) {
             foreach ($aRsValues as $sField => $value) {
-//                $sField = strtoupper($sField);
-                if (in_array(strtoupper($sField), $aFieldMapping)) {
-                    $classAttrib = array_search(strtoupper($sField), $aFieldMapping);
-                    $this->aData[$classAttrib] = $value;
+                if (in_array($sField, $aFieldMapping)) {
+                    $this->aData[array_search($sField, $aFieldMapping)] = $value;
                 }
                 else {
                     $this->aData[$sField] = $value;
                 }
             }
 
-//            $this->exists       = true;
-//            $this->objectStatus = self::ALREADY_EXISTS;
+            $this->exists       = true;
+            $this->objectStatus = self::ALREADY_EXISTS;
         }
 
         return;
-    }
-
-    public function __get($sAttrib)
-    {
-        if (isset($this->aData[$sAttrib])) {
-            return $this->aData[$sAttrib];
-        }
-
-        return null;
     }
 
     public function __set($sAttrib, $sValue)
@@ -191,15 +207,15 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         $oldValue              = (isset($this->aData[$sAttrib])) ? $this->aData[$sAttrib] : null;
         $newValue              = $sValue;
         $this->detectChanges($sAttrib, $oldValue, $newValue);
-        $this->aData[$sAttrib] = $sValue;
+        parent::__set($sAttrib, $sValue);
     }
-    
+
     public function setDetectChanges($value = true) {
-        
+
         if ($value) {
             $this->_isLoading = false;
         } else {
-            $this->_isLoading = true;            
+            $this->_isLoading = true;
         }
     }
 
@@ -210,16 +226,14 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         $this->_initClassAttribs($aRsValues, $aFieldMapping);
         $this->_isLoading = false;
 
-//        $this->loadRelated();
-
         return;
     }
 
-//    public function initByResultSet($aRsValues)
-//    {
-//        $this->init($aRsValues);
-//        return;
-//    }
+    public function initByResultSet($aRsValues)
+    {
+        $this->init($aRsValues);
+        return;
+    }
 
     public function fill($item)
     {
@@ -242,7 +256,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
 
             $this->init($array);
         }
-//        $this->objectStatus = self::FILLED_BY_OBJECT;
+        $this->objectStatus = self::FILLED_BY_OBJECT;
         return;
     }
 
@@ -251,24 +265,20 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         if (is_array($array) && $array) {
             $this->init($array);
         }
-//        $this->objectStatus = self::FILLED_BY_ARRAY;
+        $this->objectStatus = self::FILLED_BY_ARRAY;
         return;
     }
 
-    /* ********************************************
-     * interfaces\CollectionInterface methods START
-     * ******************************************** */
-
     public function getAll()
     {
+        $this->clearCollection();
+
         $resultSet = $this->oMapper->getAll();
 
         $className = get_class($this);
 
         foreach ($resultSet as $key => $row) {
-
             $obj = new $className();
-
             $obj->fill($row);
 
             $this->aCollection[] = $obj;
@@ -280,7 +290,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         return $this->aCollection;
     }
 
-    public function fillCollection($resultSet)
+    protected function fillCollection($resultSet)
     {
         $className = get_class($this);
 
@@ -288,29 +298,13 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
             $this->aCollection = array();
         }
 
-        $dto = new dto\ViewDTO($this->oDb, $this->oLogger);
         foreach ($resultSet as $key => $row) {
-//            $obj = new $className($dto);
             $obj = new $className();
             $obj->fill($row);
 
             $this->aCollection[] = $obj;
-            unset($obj);
         }
         unset($resultSet);
-    }
-
-
-    public function getAttribs($bAsObject = false, $bAsXml = false)
-    {
-        $mReturn = $this->aData;
-        if ($bAsObject) {
-            $mReturn = $this->_arrayToObject($mReturn);
-        }
-        else if ($bAsXml) {
-            $mReturn = $this->_arrayToXML($mReturn);
-        }
-        return $mReturn;
     }
 
     /**
@@ -324,69 +318,58 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
      */
     public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
     {
-//        if (!$orderDto->getAttribs()) {
-//            $orderDto = null;
-//        }
+        $this->clearCollection();
 
-//        $limit = $limitDto->getAttribs();
-        
-//        if (!$limitDto || !$limitDto->getAttribs()) {
-//            $limitDto = null;
-//        }
-
-//        $resultSet = $this->oMapper->getByFilter($filterDTO);
         $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDto);
 
         $this->fillCollection($resultSet);
 
+        if ($limitDto && $limitDto->justFirst()) {
+            $theFirst = $this->getNext()->getAttribs();
+            $this->fill($theFirst);
+            return;
+        }
+
+        $this->collectionSize = count($this->aCollection);
+
         return $this->aCollection;
     }
 
-    public function getByQuantity(  GetByFilterDTO $filterDTO,
-                                    OrderByDTO $orderDto = null,
-                                    LimitDTO $limitDTO = null)
+    /* ********************************************
+     * interfaces\CollectionInterface methods END
+     * ******************************************** */
+
+    /**
+     * getValues Devuelve los atributos definidos en el Descriptor
+     */
+    public function getValues($bOnlyChanges = false)
     {
-//        $limitDto = new LimitDTO();
-//        $limitDto->firstRow = 0;
-//        $limitDto->lastRow  = 0;
-
-//        $resultSet = $this->oMapper->getByFilter($filterDTO);
-        if (!$orderDto->getAttribs()) {
-            $orderDto = null;
+        $aValues = array();
+        // Devuelve los attribs de la clase en un array asociativo
+        // donde la key es el nombre del campo en la DB y el valor es el attr
+        if ($bOnlyChanges) {
+            if (is_array($this->aListChange)) {
+                // Solo devuelve los campos sobre los que hubo cambios
+                foreach ($this->aListChange as $sAttrName => $aChanges) {
+                    $aFieldMapping = $this->oMapper->getFieldMapping(); // TODO corregir esto!
+                    if (isset($aFieldMapping[$sAttrName])) {
+                        // Devuelve el nuevo valor de los campos
+                        $aValues[$aFieldMapping[$sAttrName]] = $aChanges['newValue'];
+                    }
+                }
+            }
         }
-        if (!$limitDTO->getAttribs()) {
-            $limitDTO = null;
+        else {
+            // Devuelve todos los campos, es para el caso de un insert
+            $aFieldMapping = $this->oMapper->getFieldMapping();
+            foreach ($aFieldMapping as $sAttrib => $sField) {
+                if (isset($this->aData[$sAttrib]) &&  $this->aData[$sAttrib] !== null) {
+                    $aValues[$sAttrib] = $this->aData[$sAttrib];
+                }
+            }
         }
-        $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDTO);
-
-        $this->fillCollection($resultSet);
-
-        return $this->aCollection;
+        return $aValues;
     }
-
-    public function getByDate(  GetByFilterDTO $filterDTO,
-                                OrderByDTO $orderDto = null,
-                                  LimitDTO $limitDTO = null)
-    {
-//        $limitDto = new LimitDTO();
-//        $limitDto->firstRow = 0;
-//        $limitDto->lastRow  = 0;
-
-//        $resultSet = $this->oMapper->getByFilter($filterDTO);
-        if (!$orderDto->getAttribs()) {
-            $orderDto = null;
-        }
-
-        if (!$limitDTO->getAttribs()) {
-            $limitDTO = null;
-        }
-        $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDTO);
-
-        $this->fillCollection($resultSet);
-
-        return $this->aCollection;
-    }
-
 
     protected function detectChanges($sAttrib, $oldValue, $newValue)
     {
@@ -410,7 +393,7 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
                         $this->aListChange[$sAttrib] = array('oldValue' => $oldValue, 'newValue' => $newValue);
                         if ($this->oLogger) {
                             $this->oLogger->logDetectChanges(get_class($this).'.'.$sAttrib.
-                                                         " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
+                                                             " | old value -> [{$oldValue}] | new value -> [{$newValue}]");
                         }
                     }
                 }
@@ -419,69 +402,60 @@ abstract class ViewModel extends \levitarmouse\core\Object implements Collection
         return;
     }
 
-    public function getCollectionSize()
+    public function hasChanges($sAttrName = '')
     {
-        return count($this->aCollection);
-    }
-
-    public function getNext()
-    {
-        $index = $this->collectionIndex;
-
-        while ($index < count($this->aCollection)) {
-
-                $index = $this->collectionIndex;
-                $this->collectionIndex ++;
-
-                $return = $this->aCollection[$index];
-
-            return $return;
-        }
-        return null;
-    }
-
-    public function getValues($bOnlyChanges = false)
-    {
-        $aValues = array();
-        // Devuelve los attribs de la clase en un array asociativo
-        // donde la key es el nombre del campo en la DB y el valor es el attr
-        if ($bOnlyChanges) {
-            if (is_array($this->aListChange)) {
-                // Solo devuelve los campos sobre los que hubo cambios
-                foreach ($this->aListChange as $sAttrName => $aChanges) {
-                    $aFieldMapping = $this->oMapper->getFieldMapping();
-                    if (isset($aFieldMapping[$sAttrName])) {
-                        // Devuelve el nuevo valor de los campos
-                        $aValues[$aFieldMapping[$sAttrName]] = $aChanges['newValue'];
-                    }
-                }
+        if ($sAttrName != '') {
+            if ($this->hasChanges) {
+                return array_key_exists($sAttrName, $this->getListChange());
             }
+        }
+        return $this->hasChanges;
+    }
+
+    public function getOldValueFor($sAttrib)
+    {
+        if (is_array($this->aListChange) && isset($this->aListChange[$sAttrib])) {
+            return $this->aListChange[$sAttrib]['oldValue'];
+        }
+        return $this->aData[$sAttrib];
+    }
+
+    public function getListChange()
+    {
+        return $this->aListChange;
+    }
+
+    public function isBeingUsed($sField, $sValue, $bAutoExclude = true)
+    {
+        $id = $this->oMapper->getAttribAsUniqueKey();
+
+        if ($bAutoExclude) {
+            return $this->oMapper->isBeingUsed($sField, $sValue, $this->$id);
         }
         else {
-            // Devuelve todos los campos, es para el caso de un insert
-            $aFieldMapping = $this->oMapper->getFieldMapping();
-            foreach ($aFieldMapping as $sAttrib => $sField) {
-                if (isset($this->aData[$sAttrib]) &&  $this->aData[$sAttrib] !== null) {
-                    $aValues[$sAttrib] = $this->aData[$sAttrib];
-                }
-            }
+            return $this->oMapper->isBeingUsed($sField, $sValue);
         }
-        return $aValues;
     }
 
     public function getMapper()
     {
         return $this->oMapper;
     }
-    
-    
+
+    public function getStatus()
+    {
+        return $this->objectStatus;
+    }
+
     public function fieldExist($name = '') {
 
         $aFieldMapping = $this->oMapper->getFieldMapping();
-        
+
         $exist = array_key_exists($name, $aFieldMapping);
-        
+
+        if (!$exist) {
+            $exist = in_array($name, $aFieldMapping);
+        }
         return $exist;
-        
     }
 }

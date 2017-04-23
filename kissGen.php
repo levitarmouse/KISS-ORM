@@ -461,7 +461,7 @@ QUERY;
 
     $model = new levitarmouse\kiss_orm\GenericEntity();
 
-        $result = $model->getMapper()->select($query);
+    $result = $model->getMapper()->select($query);
 
     $type = (isset($result[0]['TABLE_TYPE'])) ? $result[0]['TABLE_TYPE'] : '';
 

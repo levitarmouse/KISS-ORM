@@ -363,6 +363,11 @@ implements EntityInterface,
         $filter = null;
         if ($filterDTO) {
             $filter = $filterDTO->getFilter();
+
+            // Caso de uso de Filtro, enviado vacio
+//            if (!$filter) {
+//                return array();
+//            }
         }
 
         $order = null;
@@ -372,11 +377,11 @@ implements EntityInterface,
             $order = $orderDto;
             $orderFields = $orderDto->getAttribs();
         }
-        
+
         $initSize = count($orderFields);
         $orderFields = $this->transformClassAttribsToDBFields($orderFields);
         $endSize = count($orderFields);
-        
+
         if ($initSize != $endSize) {
             throw new \Exception(self::ORDER_HAS_INVALID_FIELDS);
         }
@@ -437,14 +442,8 @@ implements EntityInterface,
 
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
-//            switch ($this->dbEngineVendor) {
-//                case 'MYSQL':
-//                    $sFrom  = " FROM (SELECT @rownum:=0) r, {$tableName} ";
-//                    break;
-//                case 'ORACLE':
+
             $sSql  .= " FROM $tableName ";
-//                    break;
-//            }
 
             $sWhere = 'WHERE 1 = 1';
 
@@ -453,19 +452,25 @@ implements EntityInterface,
 
                     $size = count($value);
 
-                    $bindNames = ''; $i = 1;
-                    foreach ($value as $bindKey => $bindValue) {
-                        $name = $dbField."_".$i;
-                        $comma = ($i < $size) ? ', ' : ' ';
+                    if ($size == 0) {
+                        $sWhere .= " AND $bt{$dbField}$bt IS NULL";
+                    }
+                    else {
+                        $bindNames = ''; $i = 1;
+                        foreach ($value as $bindKey => $bindValue) {
+                            $name = $dbField."_".$i;
+                            $comma = ($i < $size) ? ', ' : ' ';
 
-                        $bindNames .= ":".$name.$comma;
+                            $bindNames .= ":".$name.$comma;
 
-                        $aBnd[$name] = $bindValue;
+                            $aBnd[$name] = $bindValue;
 
-                        $i++;
+                            $i++;
+                        }
+
+                        $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
                     }
 
-                    $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
                 } else {
                     $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
                     $bGT   = strlen(strstr($value, '$GT.')) > 1;
@@ -495,15 +500,15 @@ implements EntityInterface,
                     }
                     else if ($bBTW) {
                         list($simbol, $btwFrom, $btwTo) = explode('.',$value);
-                        
+
                         $dateH = date_create($btwFrom);
                         date_sub($dateH, date_interval_create_from_date_string('1 day'));
                         $btwFrom = date_format($dateH, 'Y-m-d');
-                        
+
                         $dateH = date_create($btwTo);
                         date_add($dateH, date_interval_create_from_date_string('1 day'));
                         $btwTo = date_format($dateH, 'Y-m-d');
-                        
+
                         $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
                         $value = str_replace($simbol, '', $value);
                     }
@@ -514,11 +519,7 @@ implements EntityInterface,
                 }
             }
 
-//            $sSql .= $sFrom;
-
             $sSql .= $sWhere;
-
-//            $sSql .= $sFrom.') page';
 
             if ($order) {
 
@@ -530,12 +531,7 @@ implements EntityInterface,
 
                         $comma = ($bFirst) ? ' ' : ', ';
 
-                        $orderStr .= $bt.$field.$bt." ".$direction.$comma;
-
-    //                    if ($order->direction) {
-    //                        $direction = $order->direction;
-    //                        $orderStr .= " ".$direction;
-    //                    }
+                        $orderStr .= $comma.$bt.$field.$bt." ".$direction;
 
                         $bFirst = false;
                     }
@@ -646,7 +642,6 @@ implements EntityInterface,
             $sSchemaTable = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
             // Logging
-//            $this->oLogger->logDbChanges("insert {$sSchemaTable} values {$sLogValues}", 'INSERT');
 
             $sSql = "
            INSERT INTO {$sSchemaTable}
@@ -654,7 +649,6 @@ implements EntityInterface,
                VALUES ({$sValues})";
 
             $iResult = $this->insert($sSql, $aBnd, $sSchemaTable);
-//            $this->oLogger->logDebug("insert ending with: ({$iResult})");
 
         }
         return $iResult;
@@ -686,19 +680,19 @@ implements EntityInterface,
         }
         return $value;
     }
-    
+
     protected function transformClassAttribsToDBFields($attribsArray) {
         $result = array();
-        
+
         $fieldMapping = $this->aFieldMapping;
-        
+
         foreach ($attribsArray as $key => $value) {
-            
+
             if (isset($attribsArray[$key])) {
-                $result[$fieldMapping[$key]] = $value;                
-            }            
+                $result[$fieldMapping[$key]] = $value;
+            }
         }
-        
+
         return $result;
     }
 
@@ -803,9 +797,6 @@ implements EntityInterface,
                 return false;
             }
 
-            // Logging
-//            $this->oLogger->logDbChanges("update {$sMainTable} set {$sLogValues} where {$sLogWhere}", 'UPDATE');
-
             $sSql = "
                 UPDATE {$sMainTable}
                    SET {$sSetters}
@@ -842,9 +833,6 @@ implements EntityInterface,
                 $sLogWhere .= $field . '->[' . $value . '] ';
             }
 
-            // Logging
-//            $this->oLogger->logDbChanges("delete from {$sMainTable} where {$sLogWhere}", 'DELETE');
-
             $sSql .= ' ' . $sWhere;
 
             $iResult = $this->delete($sSql, $aBnd, $sMainTable);
@@ -870,7 +858,6 @@ implements EntityInterface,
     public function valueAlreadyExists($sTableName, $sFieldName, $sValue, $sExcludeField = '', $iExcludeId = '')
     {
         // TODO
-        // escapar parametros
         $bResult = false;
 
         $sSql     = <<<EOQ
@@ -938,5 +925,4 @@ EOQ;
         }
         return $bBlockedField;
     }
-
 }
