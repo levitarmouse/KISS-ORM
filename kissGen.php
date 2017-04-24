@@ -47,7 +47,7 @@ echo EOL;
 echo "-- Autogeneración de Descriptores y Clases --";
 echo EOL;
 echo "---------------------------------------------";
-echo EOL;
+echo EOL.EOL;
 
 $tables = array();
 
@@ -59,7 +59,7 @@ $tables = array();
 //    if ($action = 'run') {
 
         if (file_exists('tables.ini')) {
-            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas y vistas a mapear ...".EOL;
+            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas y vistas a mapear ...".EOL.EOL;
             $listTables = parse_ini_file('tables.ini', true, INI_SCANNER_RAW);
 
             $tables = $listTables['tables'];
@@ -107,13 +107,13 @@ $tables = array();
         }
 
         if (!$dbConfig) {
-            echo "".PHP_EOL;
-            echo "Error".PHP_EOL;
-            echo "No se encuentra el archivo de configuración para acceso a la Base de Datos".PHP_EOL;
-            echo "Se espera hallarlo en:".PHP_EOL;
-            echo "./config/kissorm/database.ini".PHP_EOL;
-            echo "o ".PHP_EOL;
-            echo "./vendor/levitarmouse/kissorm/config/database.ini".PHP_EOL;
+            echo "".EOL;
+            echo "Error".EOL;
+            echo "No se encuentra el archivo de configuración para acceso a la Base de Datos".EOL;
+            echo "Se espera hallarlo en:".EOL;
+            echo "./config/kissorm/database.ini".EOL;
+            echo "o ".EOL;
+            echo "./vendor/levitarmouse/kissorm/config/database.ini".EOL;
             die;
         }
         
@@ -129,7 +129,7 @@ $tables = array();
             if ($bMkDir) {
 
                 echo EOL;
-                echo "---------------------------------------------";
+                echo "---------------------------------------------".EOL;;
                 echo "--- Se creó la carpeta " . $destination . EOL;
                 echo "---------------------------------------------";
                 echo EOL;
@@ -174,7 +174,7 @@ $tables = array();
                 $objectType = validateTable($table);
 
                 if (!$objectType) {
-                    echo PHP_EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.PHP_EOL;
+                    echo EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.EOL;
                     $resultTables[] = $info;
                     continue;
                 }
@@ -194,8 +194,8 @@ $tables = array();
 
                     $psr0Destination = $destination.$psr0Path;
                     
-                    echo " destination".$destination.PHP_EOL;
-                    echo "Creando la carpeta ".$psr0Destination.PHP_EOL;
+                    echo "Destino de la generación: ".$destination.EOL.EOL;
+                    echo "Creando la carpeta ".$psr0Destination.EOL;
                     
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
@@ -219,17 +219,17 @@ $tables = array();
 
                     $descriptor = fopen($psr0Destination . '/' . $className . '.ini', 'w+');
 
-                    $secTable  = '[table]' . PHP_EOL;
-                    $secTable .= 'schema = ' . $dbname . PHP_EOL;
-                    $secTable .= 'table  = ' . $table . PHP_EOL;
-                    $secTable .= PHP_EOL;
+                    $secTable  = '[table]' . EOL;
+                    $secTable .= 'schema = ' . $dbname . EOL;
+                    $secTable .= 'table  = ' . $table . EOL;
+                    $secTable .= EOL;
 
                     fwrite($descriptor, $secTable);
 
-                    $details = '[details]' . PHP_EOL . PHP_EOL;
+                    $details = '[details]' . EOL . EOL;
                     fwrite($descriptor, $details);
 
-                    $fields = '[fields]' . PHP_EOL;
+                    $fields = '[fields]' . EOL;
                     fwrite($descriptor, $fields);
 
                     foreach ($result as $key => $value) {
@@ -246,7 +246,7 @@ $tables = array();
                         $line2 = str_pad(strtoupper($field), 20, ' ', STR_PAD_RIGHT) . ' ; ';
                         $line3 = $Type . ' |' . $Null . ' |' . $pk . ' |' . $Default . ' |' . $Extra;
 
-                        $line = $line1 . $line2 . $line3 . PHP_EOL;
+                        $line = $line1 . $line2 . $line3 . EOL;
 
                         fwrite($descriptor, $line);
 
@@ -256,23 +256,23 @@ $tables = array();
                         }
                     }
 
-                    $fields = PHP_EOL . '[fields_read]' . PHP_EOL;
+                    $fields = EOL . '[fields_read]' . EOL;
                     fwrite($descriptor, $fields);
 
-                    $fields = PHP_EOL . '[fields_write]' . PHP_EOL;
+                    $fields = EOL . '[fields_write]' . EOL;
                     fwrite($descriptor, $fields);
 
-                    $fields = PHP_EOL . '[primary_key]' . PHP_EOL;
+                    $fields = EOL . '[primary_key]' . EOL;
                     fwrite($descriptor, $fields);
 
                     if (count($primaryKey) > 0) {
                         foreach ($primaryKey as $primaryKeyattrib => $primaryKeyfield) {
-                            $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT) . ' = ' . $primaryKeyfield . PHP_EOL;
+                            $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT) . ' = ' . $primaryKeyfield . EOL;
                             fwrite($descriptor, $pkString);
                         }
                     }
 
-                    $fields = PHP_EOL . '[unique_key]' . PHP_EOL;
+                    $fields = EOL . '[unique_key]' . EOL;
                     fwrite($descriptor, $fields);
 
                     fclose($descriptor);
@@ -282,7 +282,7 @@ $tables = array();
                     makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destination);
 
                     $info->className = $className;
-                    $info->nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
+                    $info->nameSpace = trim(implode('\\', $aNameSpace).EOL);
 
                     $resultTables[] = $info;
 
@@ -301,11 +301,11 @@ $tables = array();
 
         } catch (\Exception $ex) {
             
-            echo PHP_EOL;
-            echo "!!! Un momento !!! ".PHP_EOL;
-            echo "Se produjo un error. ".PHP_EOL."Revise la configuración de acceso a la base de datos en el archivo config/kissorm/database.ini".EOL;
-            echo PHP_EOL;
-            echo PHP_EOL;
+            echo EOL;
+            echo "!!! Un momento !!! ".EOL;
+            echo "Se produjo un error. ".EOL."Revise la configuración de acceso a la base de datos en el archivo config/kissorm/database.ini".EOL;
+            echo EOL;
+            echo EOL;
             die;
         }
 
@@ -430,7 +430,7 @@ CODE;
 
         $type = $value['Type'];
 
-        $nl = ($first) ? '' : PHP_EOL;
+        $nl = ($first) ? '' : EOL;
 
         $properties .= $nl.' * @property $' . $field . '      ' . $type ;
         $first = false;
@@ -440,7 +440,7 @@ CODE;
 
 
     if ($aNameSpace) {
-        $nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
+        $nameSpace = trim(implode('\\', $aNameSpace).EOL);
 
         if (!empty($nameSpace)) {
             $code = str_replace('{{namespace}}', 'namespace '.$nameSpace.';', $code);
