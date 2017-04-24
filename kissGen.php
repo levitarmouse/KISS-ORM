@@ -42,6 +42,8 @@ if ($client != 'cli') {
 echo EOL;
 echo "---------------------------------------------";
 echo EOL;
+echo "--               KISS ORM                  --";
+echo EOL;
 echo "-- Autogeneración de Descriptores y Clases --";
 echo EOL;
 echo "---------------------------------------------";
@@ -57,7 +59,7 @@ $tables = array();
 //    if ($action = 'run') {
 
         if (file_exists('tables.ini')) {
-            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ...".EOL;
+            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas y vistas a mapear ...".EOL;
             $listTables = parse_ini_file('tables.ini', true, INI_SCANNER_RAW);
 
             $tables = $listTables['tables'];
@@ -298,7 +300,13 @@ $tables = array();
             $showInfo = true;
 
         } catch (\Exception $ex) {
-            echo "Se produjo un error. "."Revise la configuración de la base de datos en el archivo config/database.ini".EOL;
+            
+            echo PHP_EOL;
+            echo "!!! Un momento !!! ".PHP_EOL;
+            echo "Se produjo un error. ".PHP_EOL."Revise la configuración de acceso a la base de datos en el archivo config/kissorm/database.ini".EOL;
+            echo PHP_EOL;
+            echo PHP_EOL;
+            die;
         }
 
 
