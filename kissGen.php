@@ -27,7 +27,6 @@
 //
 //die;
 
-
 $client = php_sapi_name();
 
 if ($client == 'cli') {
@@ -39,7 +38,6 @@ if ($client == 'cli') {
 if ($client != 'cli') {
     echo "<pre>";
 }
-
 
 echo EOL;
 echo "---------------------------------------------";
@@ -90,8 +88,33 @@ $tables = array();
         $model = new \levitarmouse\kiss_orm\GenericEntity();
 
         // Retrive Database configuration
-        $dbConfig = new \levitarmouse\core\ConfigIni(__DIR__ . '/config/database.ini');
 
+        $asProyectPath = __DIR__ . '/config/database.ini';
+        $asLibraryPath = __DIR__ . '/../../../config/kissorm/database.ini';
+        
+        $asProyect = file_exists($asProyectPath);
+        $asLibrary = file_exists($asLibraryPath);
+        
+        $dbConfig = null;
+        if ($asProyect) {
+            $dbConfig = new \levitarmouse\core\ConfigIni($asProyectPath);
+        }
+        
+        if ($asLibrary) {
+            $dbConfig = new \levitarmouse\core\ConfigIni($asLibraryPath);
+        }
+
+        if (!$dbConfig) {
+            echo "".PHP_EOL;
+            echo "Error".PHP_EOL;
+            echo "No se encuentra el archivo de configuración para acceso a la Base de Datos".PHP_EOL;
+            echo "Se espera hallarlo en:".PHP_EOL;
+            echo "./config/kissorm/database.ini".PHP_EOL;
+            echo "o ".PHP_EOL;
+            echo "./vendor/levitarmouse/kissorm/config/database.ini".PHP_EOL;
+            die;
+        }
+        
         $engine = $dbConfig->get('DEFAULT.EngineToUse');
 
         $dbname = $dbConfig->get($engine.'.dbname');
@@ -117,7 +140,7 @@ $tables = array();
                 echo EOL;
                 echo "Se requieren permisos sobre el sistema de archivos para hacerlo!" . EOL;
                 echo EOL;
-                echo "Sino acceda desde una consola a la carpeta:".EOL;
+                echo "Como alternativa acceda desde una consola a la carpeta:".EOL;
                 echo realpath(__DIR__."/../../../"). EOL;
                 echo " y ejecute el siguiente comando:".EOL;
                 echo '$ php kissGen.php'.EOL;
@@ -286,8 +309,6 @@ $tables = array();
             echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
-//                $oData = extractModelData($data);
-
                 $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
                 $className = str_pad('  '.$data->className.'  ', 22, ' ', STR_PAD_RIGHT);
                 
@@ -436,8 +457,6 @@ function setPermissions($path) {
 //    chmod($path, '0764');
 }
 
-
-
 function validateTable($tableName) {
 
     global $dbConfig;
@@ -449,7 +468,6 @@ function validateTable($tableName) {
     switch ($engine) {
         default:
         case 'MYSQL':
-//            $query  = 'SELECT *
             $query = <<< QUERY
                 SELECT TABLE_TYPE
                   FROM information_schema.tables
