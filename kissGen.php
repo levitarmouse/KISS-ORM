@@ -175,6 +175,7 @@ $tables = array();
 
                 if (!$objectType) {
                     echo EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.EOL;
+                    echo EOL."Revise el archivo ./tables.ini ";
                     $resultTables[] = $info;
                     continue;
                 }
