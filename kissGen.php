@@ -195,9 +195,6 @@ $tables = array();
 
                     $psr0Destination = $destination.$psr0Path;
                     
-                    echo "Destino de la generación: ".$destination.EOL.EOL;
-                    echo "Creando la carpeta ".$psr0Destination.EOL;
-                    
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
                     }
@@ -220,17 +217,17 @@ $tables = array();
 
                     $descriptor = fopen($psr0Destination . '/' . $className . '.ini', 'w+');
 
-                    $secTable  = '[table]' . EOL;
-                    $secTable .= 'schema = ' . $dbname . EOL;
-                    $secTable .= 'table  = ' . $table . EOL;
-                    $secTable .= EOL;
+                    $secTable  = '[table]' . PHP_EOL;
+                    $secTable .= 'schema = ' . $dbname . PHP_EOL;
+                    $secTable .= 'table  = ' . $table . PHP_EOL;
+                    $secTable .= PHP_EOL;
 
                     fwrite($descriptor, $secTable);
 
-                    $details = '[details]' . EOL . EOL;
+                    $details = '[details]' . PHP_EOL . PHP_EOL;
                     fwrite($descriptor, $details);
 
-                    $fields = '[fields]' . EOL;
+                    $fields = '[fields]' . PHP_EOL;
                     fwrite($descriptor, $fields);
 
                     foreach ($result as $key => $value) {
@@ -247,7 +244,7 @@ $tables = array();
                         $line2 = str_pad(strtoupper($field), 20, ' ', STR_PAD_RIGHT) . ' ; ';
                         $line3 = $Type . ' |' . $Null . ' |' . $pk . ' |' . $Default . ' |' . $Extra;
 
-                        $line = $line1 . $line2 . $line3 . EOL;
+                        $line = $line1 . $line2 . $line3 . PHP_EOL;
 
                         fwrite($descriptor, $line);
 
@@ -257,23 +254,23 @@ $tables = array();
                         }
                     }
 
-                    $fields = EOL . '[fields_read]' . EOL;
+                    $fields = PHP_EOL . '[fields_read]' . PHP_EOL;
                     fwrite($descriptor, $fields);
 
-                    $fields = EOL . '[fields_write]' . EOL;
+                    $fields = PHP_EOL . '[fields_write]' . PHP_EOL;
                     fwrite($descriptor, $fields);
 
-                    $fields = EOL . '[primary_key]' . EOL;
+                    $fields = PHP_EOL . '[primary_key]' . PHP_EOL;
                     fwrite($descriptor, $fields);
 
                     if (count($primaryKey) > 0) {
                         foreach ($primaryKey as $primaryKeyattrib => $primaryKeyfield) {
-                            $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT) . ' = ' . $primaryKeyfield . EOL;
+                            $pkString = str_pad($primaryKeyattrib, 13, ' ', STR_PAD_RIGHT) . ' = ' . $primaryKeyfield . PHP_EOL;
                             fwrite($descriptor, $pkString);
                         }
                     }
 
-                    $fields = EOL . '[unique_key]' . EOL;
+                    $fields = PHP_EOL . '[unique_key]' . PHP_EOL;
                     fwrite($descriptor, $fields);
 
                     fclose($descriptor);
@@ -283,7 +280,7 @@ $tables = array();
                     makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destination);
 
                     $info->className = $className;
-                    $info->nameSpace = trim(implode('\\', $aNameSpace).EOL);
+                    $info->nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
 
                     $resultTables[] = $info;
 
@@ -313,12 +310,12 @@ $tables = array();
 
         if ($showInfo) {
             echo EOL;
-            echo "   " . "|=====================================================================================|" . EOL;
-            echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS           |" . EOL;
-            echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
+            echo "   " . "|=========================================================================================|" . EOL;
+            echo "   " . "|  SEGÚN LAS SIGUIENTES      |     SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS              |" . EOL;
+            echo "   " . "|===== TABLAS/VISTAS=========|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
-                $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
+                $tableName = str_pad($data->tableName.'  ', 23, '_', STR_PAD_LEFT);
                 $className = str_pad('  '.$data->className.'  ', 22, ' ', STR_PAD_RIGHT);
                 
                 if (empty(trim($className))) {
