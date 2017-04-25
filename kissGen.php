@@ -408,7 +408,7 @@ function makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destin
     $code = <<<CODE
 <?php
 /*
- * CODIGO AUTOGENERADO POR kissDesc. KISS-ORM
+ * CODIGO AUTOGENERADO POR kissGen -> KISS-ORM
  */
 {{namespace}}
 /**
@@ -431,7 +431,7 @@ CODE;
 
         $type = $value['Type'];
 
-        $nl = ($first) ? '' : EOL;
+        $nl = ($first) ? '' : PHP_EOL;
 
         $properties .= $nl.' * @property $' . $field . '      ' . $type ;
         $first = false;
@@ -441,7 +441,7 @@ CODE;
 
 
     if ($aNameSpace) {
-        $nameSpace = trim(implode('\\', $aNameSpace).EOL);
+        $nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
 
         if (!empty($nameSpace)) {
             $code = str_replace('{{namespace}}', 'namespace '.$nameSpace.';', $code);
