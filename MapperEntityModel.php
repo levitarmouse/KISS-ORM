@@ -386,9 +386,11 @@ implements EntityInterface,
             throw new \Exception(self::ORDER_HAS_INVALID_FIELDS);
         }
 
-        $page = null;
+        $limitRows = null;
         if ($limitDto) {
-            $page = $limitDto;
+            return $this->getByFilterLimited($filterDTO, $orderDto, $limitDto);
+            
+//            $limitRows = $limitDto;
         }
 
         if ($sMainTable) {
@@ -396,25 +398,27 @@ implements EntityInterface,
             $aaFieldCompares = array();
             $aBnd = array();
 
-            if ($page) {
+            if ($limitRows) {
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
-                        $sSql = "SELECT @rownum:=@rownum+1 ";
+                        $sSql = "SELECT @rownum:=@rownum+1 AS ROWNUM ";
                         break;
                     case 'ORACLE':
-                        $sSql = "SELECT ROWNUM";
+                        $sSql = "SELECT ROWNUM ";
                         break;
                 }
             } else {
                 $sSql = "SELECT ";
             }
 
-
-            if ($page) {
-                $sSql .= ', page.* from ( SELECT (SELECT @rownum:=0) r, ';
+            if ($limitRows) {
+                $sSql .= ', {{TableOrView.fields}} from ( SELECT (SELECT @rownum:=0) r, {{TableOrView.fields}}';
+            } else {
+                $sSql .= ' {{TableOrView.fields}} ';
             }
 
             $first = true;
+            $queryFields = '';
             foreach ($this->aFieldMapping as $classAttrib => $dbField) {
 
                 $sTemp = "{$dbField}";
@@ -427,7 +431,7 @@ implements EntityInterface,
 
                 $comma = ($first) ? ' ' : ', ';
 
-                $sSql .= $comma. $bt.$sTemp.$bt;
+                $queryFields .= $comma. $bt.$sTemp.$bt;
 
                 if (isset($filterDTO->$classAttrib)) {
                     $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
@@ -439,6 +443,8 @@ implements EntityInterface,
 
                 $first = false;
             }
+            
+            $sSql = str_replace('{{TableOrView.fields}}', $queryFields, $sSql);
 
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
@@ -473,14 +479,30 @@ implements EntityInterface,
 
                 } else {
                     $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
+                    $bAND  = strlen(strstr($value, '$AND')) > 1;
+                    $bOR   = strlen(strstr($value, '$OR')) > 1;
                     $bGT   = strlen(strstr($value, '$GT.')) > 1;
                     $bGTE  = strlen(strstr($value, '$GTE.')) > 1;
                     $bLT   = strlen(strstr($value, '$LT.')) > 1;
                     $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
                     $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
-
-                    if ($bLike) {
-                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
+                    $bNE   = strlen(strstr($value, '$NE')) > 1;
+                    
+                    if ($bAND) {
+                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
+                        $value = str_replace('$AND.', '', $value);
+                    }
+                    else if ($bOR) {
+                        $sWhere .= " OR $bt{$dbField}$bt = :$dbField";
+                        $value = str_replace('$OR.', '', $value);
+                    }
+                    else if ($bNE) {
+                        $sWhere .= " AND $bt{$dbField}$bt != :$dbField";
+                        $value = str_replace('$NE.', '', $value);
+                    }
+                    else if ($bLike) {
+//                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
+//                        $value = str_replace('$GT.', '', $value);
                     }
                     else if ($bGT) {
                         $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
@@ -542,11 +564,23 @@ implements EntityInterface,
                 $sSql .= $orderStr;
             }
 
-            if ($page) {
-                $sSql .= ") page";
+            if ($limitRows) {
+                
+                $sSql = "select TableOrView.* from (".$sSql;
+                
+                $sSql .= ") TableOrView";
+                
+                if (isset($limitRows->pageNumber)) {
+                    $pageNumber = $limitRows->pageNumber;
+                    $pageSize = $limitRows->pageSize;
+                    $from = ($pageSize * ($pageNumber - 1));
+                    $to   = (($pageSize * $pageNumber) ) -1;
+                    
+                } else {
+                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
+                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;                    
+                }
 
-                $from = (isset($page->firstRow) && is_numeric($page->firstRow)) ? $page->firstRow : 0;
-                $to   = (isset($page->lastRow)  && is_numeric($page->lastRow))  ? $page->lastRow  : 10;
 
 //                $aBnd['pageStart'] = $page->firstRow;
 //                $aBnd['pageEnd'] = $page->lastRow;
@@ -554,7 +588,8 @@ implements EntityInterface,
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
 //                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
-                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
+//                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
+                        $pageSql = " WHERE TableOrView.ROWNUM >= $from AND TableOrView.ROWNUM <= $to";
                         break;
                     case 'ORACLE':
                         break;
@@ -577,6 +612,292 @@ implements EntityInterface,
             //            $this->oLogger->logDbChanges("result: ".serialize($aResult));
 
             if (is_array($aResult)) {
+                return $aResult;
+            } else {
+                throw new \Exception($aResult);
+            }
+        }
+        return array();
+    }
+
+    protected function getByFilterLimited(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
+    {
+        $bt = self::$backTick;
+
+        $sSchema      = $this->schema;
+        $sMainTable   = $this->table;
+
+        $filter = null;
+        if ($filterDTO) {
+            $filter = $filterDTO->getFilter();
+        }
+
+        $order = null;
+        $orderFields = array();
+        if ($orderDto) {
+
+            $order = $orderDto;
+            $orderFields = $orderDto->getAttribs();
+        }
+
+        $initSize = count($orderFields);
+        $orderFields = $this->transformClassAttribsToDBFields($orderFields);
+        $endSize = count($orderFields);
+
+        if ($initSize != $endSize) {
+            throw new \Exception(self::ORDER_HAS_INVALID_FIELDS);
+        }
+
+        $limitRows = $limitDto;
+
+        if ($sMainTable) {
+
+            $aaFieldCompares = array();
+            $aBnd = array();
+
+            switch ($this->dbEngineVendor) {
+                case 'MYSQL':
+                    $sSql = "SELECT limited.* FROM ( SELECT @rownum:=@rownum+1 AS ROWNUM, TableOrView.*";
+                    break;
+//                case 'ORACLE':
+//                    $sSql = "SELECT ROWNUM ";
+//                    break;
+            }
+
+            $sSql .= ' from ( SELECT (SELECT @rownum:=0) r, {{TableOrView.fields}} ';
+
+
+            $first = true;
+            $queryFields = '';
+            foreach ($this->aFieldMapping as $classAttrib => $dbField) {
+
+                $sTemp = "{$dbField}";
+
+                if (isset($this->aFieldMappingRead)) {
+                    if (array_key_exists($dbField, $this->aFieldMappingRead)) {
+                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
+                    }
+                }
+                
+//                $t1 = '';
+
+                $comma = ($first) ? ' ' : ', ';
+
+//                $queryFields .= $comma. $t1.$bt.$sTemp.$bt;
+                $queryFields .= $comma. $bt.$sTemp.$bt;
+
+                if (isset($filterDTO->$classAttrib)) {
+                    $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
+                }
+
+                if (isset($filterDTO->$dbField)) {
+                    $aaFieldCompares[$dbField] = $filterDTO->$dbField;
+                }
+
+                $first = false;
+            }
+            
+            $sSql = str_replace('{{TableOrView.fields}}', $queryFields, $sSql);
+
+            $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
+
+//            switch ($this->dbEngineVendor) {
+//                case 'MYSQL':
+//                    $sFrom  = " FROM (SELECT @rownum:=0) r, {$tableName} ";
+//                    break;
+//                case 'ORACLE':
+            $sSql  .= " FROM $tableName ";
+//                    break;
+//            }
+
+            $sWhere = 'WHERE 1 = 1';
+
+            foreach($aaFieldCompares as $dbField => $value) {
+                if (is_array($value)) {
+
+                    $size = count($value);
+
+                    if ($size == 0) {
+                        $sWhere .= " AND $bt{$dbField}$bt IS NULL";
+                    }
+                    else {
+                        $bindNames = ''; $i = 1;
+                        foreach ($value as $bindKey => $bindValue) {
+                            $name = $dbField."_".$i;
+                            $comma = ($i < $size) ? ', ' : ' ';
+
+                            $bindNames .= ":".$name.$comma;
+
+                            $aBnd[$name] = $bindValue;
+
+                            $i++;
+                        }
+
+                        $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
+                    }
+
+                } else {
+                    $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
+                    $bAND  = strlen(strstr($value, '$AND')) > 1;
+                    $bOR   = strlen(strstr($value, '$OR')) > 1;
+                    $bGT   = strlen(strstr($value, '$GT.')) > 1;
+                    $bGTE  = strlen(strstr($value, '$GTE.')) > 1;
+                    $bLT   = strlen(strstr($value, '$LT.')) > 1;
+                    $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
+                    $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
+                    $bNE   = strlen(strstr($value, '$NE')) > 1;
+                    
+                    if ($bAND) {
+                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
+                        $value = str_replace('$AND.', '', $value);
+                    }
+                    else if ($bOR) {
+                        $sWhere .= " OR $bt{$dbField}$bt = :$dbField";
+                        $value = str_replace('$OR.', '', $value);
+                    }
+                    else if ($bNE) {
+                        $sWhere .= " AND $bt{$dbField}$bt != :$dbField";
+                        $value = str_replace('$NE.', '', $value);
+                    }
+                    else if ($bLike) {
+//                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
+//                        $value = str_replace('$GT.', '', $value);
+                    }
+                    else if ($bGT) {
+                        $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
+                        $value = str_replace('$GT.', '', $value);
+                    }
+                    else if ($bGTE) {
+                        $sWhere .= " AND $bt{$dbField}$bt >= :$dbField";
+                        $value = str_replace('$GTE.', '', $value);
+                    }
+                    else if ($bLT) {
+                        $sWhere .= " AND $bt{$dbField}$bt < :$dbField";
+                        $value = str_replace('$LT.', '', $value);
+                    }
+                    else if ($bLTE) {
+                        $sWhere .= " AND $bt{$dbField}$bt <= :$dbField";
+                        $value = str_replace('$LTE.', '', $value);
+                    }
+                    else if ($bBTW) {
+                        list($simbol, $btwFrom, $btwTo) = explode('.',$value);
+
+                        $dateH = date_create($btwFrom);
+                        date_sub($dateH, date_interval_create_from_date_string('1 day'));
+                        $btwFrom = date_format($dateH, 'Y-m-d');
+
+                        $dateH = date_create($btwTo);
+                        date_add($dateH, date_interval_create_from_date_string('1 day'));
+                        $btwTo = date_format($dateH, 'Y-m-d');
+
+                        $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
+                        $value = str_replace($simbol, '', $value);
+                    }
+                    else {
+                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
+                    }
+                    $aBnd[$dbField] = $value;
+                }
+            }
+
+//            $sSql .= $sFrom;
+
+            $sSql .= $sWhere;
+
+//            $sSql .= $sFrom.') TableOrView';
+
+            if ($order) {
+
+                $orderStr = " ORDER BY ";
+
+                $bFirst = true;
+                if ($orderFields) {
+                    foreach ($orderFields as $field => $direction) {
+
+                        $comma = ($bFirst) ? ' ' : ', ';
+
+                        $orderStr .= $comma.$bt.$field.$bt." ".$direction;
+
+    //                    if ($order->direction) {
+    //                        $direction = $order->direction;
+    //                        $orderStr .= " ".$direction;
+    //                    }
+
+                        $bFirst = false;
+                    }
+                } else {
+                    $orderStr = "";
+                }
+
+                $sSql .= $orderStr;
+            }
+
+            if ($limitRows) {
+                
+                $sSql .= ") TableOrView ) limited";
+                
+                $sSqlSize = "select count(unlimitedResult.rownum) as SIZE from (".$sSql.") unlimitedResult";
+                
+                $unlimitedSizeRS = $this->select($sSqlSize, $aBnd);
+                $unlimitedSize = $unlimitedSizeRS[0]['SIZE'];
+                
+                if (isset($limitRows->pageNumber)) {
+                    $pageNumber = $limitRows->pageNumber;
+                    $pageSize = $limitRows->pageSize;
+                    
+                    $from = ($pageNumber-1)*$pageSize+1;
+                    $to = $pageSize * $pageNumber;
+                    
+                } else {
+                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
+                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;
+                }
+                
+                $lastPage = false;
+                
+                if ($from >= $unlimitedSize) {
+                    $from = $unlimitedSize - $pageSize;
+                    $from = ($from > 0 ) ? $from : 0;
+                }
+                
+                
+                if ($to >= $unlimitedSize) {
+                    $to == $unlimitedSize;
+                    
+                    $lastPage = true;
+                }
+
+                switch ($this->dbEngineVendor) {
+                    case 'MYSQL':
+//                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
+//                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
+                        $pageSql = " WHERE limited.ROWNUM >= $from AND limited.ROWNUM <= $to";
+                        break;
+                    case 'ORACLE':
+                        break;
+                }
+
+//                $aBnd['pageStart'] = $page->firstRow;
+//                $aBnd['pageEnd'] = $page->lastRow;
+
+                $sSql .= $pageSql;
+            }
+
+            // Logging
+            foreach ($aBnd as $field => $value) {
+                //                $sLogValues .= @$field.'->['.$value.'] ';
+            }
+            //            $this->oLogger->logDbChanges("select from {$tableName} where {$sLogValues}", 'SELECT');
+
+            $aResult = $this->select($sSql, $aBnd);
+
+            //            $this->oLogger->logDbChanges("result: ".serialize($aResult));
+
+            if (is_array($aResult)) {
+                
+                $aResult['lastPage']      = $lastPage;
+                $aResult['unlimitedSize'] = $unlimitedSize;
+                
                 return $aResult;
             } else {
                 throw new \Exception($aResult);

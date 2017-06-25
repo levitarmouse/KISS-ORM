@@ -21,11 +21,16 @@ class LimitDTO extends DTO
     
     public $firstRow;
     public $lastRow;
+    public $pageNumber;
+    public $pageSize;
     
     public function __construct() {
         parent::__construct();
-        $this->firstRow = 0;
-        $this->lastRow  = 10;
+        $this->firstRow   = 0;
+        $this->lastRow    = 10;
+        
+        $this->pageNumber = null;
+        $this->pageSize   = null;
     }
 
     public function setJustFirst($value = true) {

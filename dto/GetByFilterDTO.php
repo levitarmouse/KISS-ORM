@@ -13,7 +13,7 @@ namespace levitarmouse\kiss_orm\dto;
  *
  * @author gprieto
  */
-class GetByFilterDTO extends DTO
+class GetByFilterDTO extends FilterDTO
 {
 
     public function getFilter()

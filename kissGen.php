@@ -27,6 +27,7 @@
 //
 //die;
 
+
 $client = php_sapi_name();
 
 if ($client == 'cli') {
@@ -39,15 +40,14 @@ if ($client != 'cli') {
     echo "<pre>";
 }
 
+
 echo EOL;
 echo "---------------------------------------------";
-echo EOL;
-echo "--               KISS ORM                  --";
 echo EOL;
 echo "-- Autogeneración de Descriptores y Clases --";
 echo EOL;
 echo "---------------------------------------------";
-echo EOL.EOL;
+echo EOL;
 
 $tables = array();
 
@@ -59,7 +59,7 @@ $tables = array();
 //    if ($action = 'run') {
 
         if (file_exists('tables.ini')) {
-            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas y vistas a mapear ...".EOL.EOL;
+            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ...".EOL;
             $listTables = parse_ini_file('tables.ini', true, INI_SCANNER_RAW);
 
             $tables = $listTables['tables'];
@@ -73,6 +73,7 @@ $tables = array();
             echo "   "."|=======================================================".EOL;
             echo "   "."|   No se halló configuración para generar descriptores ".EOL;
             echo "   "."|=======================================================".EOL;
+//            die;
         }
 
         ////////////////////////////////////////////
@@ -90,33 +91,8 @@ $tables = array();
         $model = new \levitarmouse\kiss_orm\GenericEntity();
 
         // Retrive Database configuration
+        $dbConfig = new \levitarmouse\core\ConfigIni(__DIR__ . '/config/database.ini');
 
-        $asProyectPath = __DIR__ . '/config/database.ini';
-        $asLibraryPath = __DIR__ . '/../../../config/kissorm/database.ini';
-        
-        $asProyect = file_exists($asProyectPath);
-        $asLibrary = file_exists($asLibraryPath);
-        
-        $dbConfig = null;
-        if ($asProyect) {
-            $dbConfig = new \levitarmouse\core\ConfigIni($asProyectPath);
-        }
-        
-        if ($asLibrary) {
-            $dbConfig = new \levitarmouse\core\ConfigIni($asLibraryPath);
-        }
-
-        if (!$dbConfig) {
-            echo "".EOL;
-            echo "Error".EOL;
-            echo "No se encuentra el archivo de configuración para acceso a la Base de Datos".EOL;
-            echo "Se espera hallarlo en:".EOL;
-            echo "./config/kissorm/database.ini".EOL;
-            echo "o ".EOL;
-            echo "./vendor/levitarmouse/kissorm/config/database.ini".EOL;
-            die;
-        }
-        
         $engine = $dbConfig->get('DEFAULT.EngineToUse');
 
         $dbname = $dbConfig->get($engine.'.dbname');
@@ -129,7 +105,7 @@ $tables = array();
             if ($bMkDir) {
 
                 echo EOL;
-                echo "---------------------------------------------".EOL;;
+                echo "---------------------------------------------";
                 echo "--- Se creó la carpeta " . $destination . EOL;
                 echo "---------------------------------------------";
                 echo EOL;
@@ -142,7 +118,7 @@ $tables = array();
                 echo EOL;
                 echo "Se requieren permisos sobre el sistema de archivos para hacerlo!" . EOL;
                 echo EOL;
-                echo "Como alternativa acceda desde una consola a la carpeta:".EOL;
+                echo "Sino acceda desde una consola a la carpeta:".EOL;
                 echo realpath(__DIR__."/../../../"). EOL;
                 echo " y ejecute el siguiente comando:".EOL;
                 echo '$ php kissGen.php'.EOL;
@@ -174,8 +150,7 @@ $tables = array();
                 $objectType = validateTable($table);
 
                 if (!$objectType) {
-                    echo EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.EOL;
-                    echo EOL."Revise el archivo ./tables.ini ";
+                    echo PHP_EOL."WARNING La tabla ".$table." no existe en la base de datos ".$dbname.PHP_EOL;
                     $resultTables[] = $info;
                     continue;
                 }
@@ -194,6 +169,9 @@ $tables = array();
                     $psr0Path = implode('/', $aNameSpace);
 
                     $psr0Destination = $destination.$psr0Path;
+                    
+                    echo " destination".$destination.PHP_EOL;
+                    echo "Creando la carpeta ".$psr0Destination.PHP_EOL;
                     
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
@@ -298,24 +276,20 @@ $tables = array();
             $showInfo = true;
 
         } catch (\Exception $ex) {
-            
-            echo EOL;
-            echo "!!! Un momento !!! ".EOL;
-            echo "Se produjo un error. ".EOL."Revise la configuración de acceso a la base de datos en el archivo config/kissorm/database.ini".EOL;
-            echo EOL;
-            echo EOL;
-            die;
+            echo "Se produjo un error. "."Revise la configuración de la base de datos en el archivo config/database.ini".EOL;
         }
 
 
         if ($showInfo) {
             echo EOL;
-            echo "   " . "|=========================================================================================|" . EOL;
-            echo "   " . "|  SEGÚN LAS SIGUIENTES      |     SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS              |" . EOL;
-            echo "   " . "|===== TABLAS/VISTAS=========|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
+            echo "   " . "|=====================================================================================|" . EOL;
+            echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS           |" . EOL;
+            echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
-                $tableName = str_pad($data->tableName.'  ', 23, '_', STR_PAD_LEFT);
+//                $oData = extractModelData($data);
+
+                $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
                 $className = str_pad('  '.$data->className.'  ', 22, ' ', STR_PAD_RIGHT);
                 
                 if (empty(trim($className))) {
@@ -405,7 +379,7 @@ function makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destin
     $code = <<<CODE
 <?php
 /*
- * CODIGO AUTOGENERADO POR kissGen -> KISS-ORM
+ * CODIGO AUTOGENERADO POR kissDesc. KISS-ORM
  */
 {{namespace}}
 /**
@@ -463,6 +437,8 @@ function setPermissions($path) {
 //    chmod($path, '0764');
 }
 
+
+
 function validateTable($tableName) {
 
     global $dbConfig;
@@ -474,6 +450,7 @@ function validateTable($tableName) {
     switch ($engine) {
         default:
         case 'MYSQL':
+//            $query  = 'SELECT *
             $query = <<< QUERY
                 SELECT TABLE_TYPE
                   FROM information_schema.tables

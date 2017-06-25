@@ -21,6 +21,10 @@ use levitarmouse\kiss_orm\dto\GetByFilterDTO;
 use levitarmouse\kiss_orm\dto\LimitDTO;
 use levitarmouse\kiss_orm\dto\ModelDTO;
 use levitarmouse\kiss_orm\dto\OrderByDTO;
+use levitarmouse\kiss_orm\dto\PrimaryKeyDTO;
+use levitarmouse\kiss_orm\dto\UniqueKeyDTO;
+use levitarmouse\kiss_orm\interfaces\CollectionInterface;
+use levitarmouse\kiss_orm\interfaces\EntityInterface;
 use stdClass;
 
 /**
@@ -62,11 +66,15 @@ abstract class ViewModel
 
     protected $descriptorLocation;
 
+    protected $aCollection;
+    protected $collectionIndex;
+    protected $collectionSize;
+
     protected $_dto;
 
     protected $path;
     
-    use \levitarmouse\core\LmIterator;
+    private  $collectionEnd;
 
     function __construct(EntityDTO $dto = null)
     {
@@ -134,6 +142,11 @@ abstract class ViewModel
                 $this->loadByUK($dto->ukDTO);
             }
         }
+    }
+
+    protected function clearCollection() {
+        $this->aCollection = array();
+        $this->collectionIndex = 0;
     }
 
     protected function _locateSource() {
@@ -267,11 +280,11 @@ abstract class ViewModel
         return;
     }
 
-    public function getAll()
+    public function getAll(OrderByDTO $order = null)
     {
         $this->clearCollection();
 
-        $resultSet = $this->oMapper->getAll();
+        $resultSet = $this->oMapper->getAll($order);
 
         $className = get_class($this);
 
@@ -279,13 +292,13 @@ abstract class ViewModel
             $obj = new $className();
             $obj->fill($row);
 
-            $this->add($obj);
+            $this->aCollection[] = $obj;
         }
         unset($resultSet);
 
-        $this->collectionSize = $this->getCollectionSize();
+        $this->collectionSize = count($this->aCollection);
 
-        return $this->getCollection();
+        return $this->aCollection;
     }
 
     protected function fillCollection($resultSet)
@@ -293,14 +306,21 @@ abstract class ViewModel
         $className = get_class($this);
 
         if (count($resultSet) >= 1) {
-            $this->clearCollection();
+            $this->aCollection = array();
         }
 
         foreach ($resultSet as $key => $row) {
-            $obj = new $className();
-            $obj->fill($row);
+            
+            if ($key === 'lastPage') {
+                $this->lastPage = $row;
+            } else if ($key === 'unlimitedSize') {
+                $this->unlimitedSize = $row;
+            } else {
+                $obj = new $className();
+                $obj->fill($row);
 
-            $this->add($obj);
+                $this->aCollection[] = $obj;                
+            }            
         }
         unset($resultSet);
     }
@@ -314,8 +334,10 @@ abstract class ViewModel
      *
      * return array
      */
-    public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
+    public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null, $readyToSend = false)
     {
+        $this->collectionEnd = false;
+
         $this->clearCollection();
 
         $resultSet = $this->oMapper->getByFilter($filterDTO, $orderDto, $limitDto);
@@ -323,14 +345,65 @@ abstract class ViewModel
         $this->fillCollection($resultSet);
 
         if ($limitDto && $limitDto->justFirst()) {
+            $this->collectionSize = count($this->aCollection);
+            
             $theFirst = $this->getNext()->getAttribs();
             $this->fill($theFirst);
+            
             return;
         }
 
-        $this->collectionSize = $this->getCollectionSize();
+        $this->collectionSize = count($this->aCollection);
+            
+        if ($readyToSend) {
+            return $this->collectionReadyToResponse();
+        } else {
+            return $this->aCollection;
+        }        
+    }
 
-        return $this->getCollection();
+    public function getCollection()
+    {
+        return $this->aCollection;
+    }
+
+    public function getCollectionSize()
+    {
+        return count($this->aCollection);
+    }
+    
+    public function collectionReadyToResponse() {
+        $list = array();
+        if ($this->aCollection) {
+            while ($row = $this->getNext()) {
+                $attribs = $row->getAttribs();
+                array_push($list, $attribs);
+            }
+        }        
+        return $list;        
+    }
+
+    public function getNext()
+    {
+        if ($this->collectionSize > 0) {
+
+            if ($this->collectionIndex < $this->collectionSize) {
+
+                    $index = $this->collectionIndex;
+                    $this->collectionIndex ++;
+
+                $return = $this->aCollection[$index];
+
+                return $return;
+            }
+        } else {
+            if (!$this->collectionEnd) {
+                $this->collectionEnd = true;
+                return $this;
+            } else {
+                return null;
+            }
+        }
     }
 
     /* ********************************************

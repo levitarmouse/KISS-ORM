@@ -89,10 +89,13 @@ class DTO
 ////        return 'ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']';
 //    }
 
-//    public function __unset($name)
-//    {
-////        throw new Exception('ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']');
-////        return 'ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']';
-//    }
+    public function __unset($name)
+    {
+        if (isset($this->$name)) {
+            unset($this->_aData[$name]);
+        }
+//        throw new Exception('ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']');
+//        return 'ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']';
+    }
 
 }

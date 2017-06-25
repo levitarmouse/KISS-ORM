@@ -21,7 +21,7 @@
         }
     ],
     "scripts": {
-        "post-update-cmd": ["./scripts/post_install.sh"],
+        "post-update-cmd": [],
         "post-package-install": [],
         "post-install-cmd": [],
         "post-autoload-dump": [],
