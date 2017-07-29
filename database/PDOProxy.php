@@ -14,10 +14,10 @@ class PDOProxy
 
         $cfg = $DbConfig->get($engine);
 
-        $driver = $cfg->driver;
+        $driver = $engine;
 
+        $cfgDriver = $driver             ? $driver : null;
         $cfgDbname = isset($cfg->dbname) ? $cfg->dbname : null;
-        $cfgDriver = isset($cfg->driver) ? $cfg->driver : null;
         $cfgHost   = isset($cfg->host)   ? $cfg->host   : null;
         $cfgPass   = isset($cfg->pass)   ? $cfg->pass   : null;
         $cfgPort   = isset($cfg->port)   ? $cfg->port   : null;
@@ -29,7 +29,7 @@ class PDOProxy
             case 'mysql':
                 $Config = array(
                     'dsn' => array('host' => $cfgHost, 'dbname' => $cfgDbname),
-                    'db_driver' => $cfgDriver,
+                    'db_driver' => strtolower($cfgDriver),
                     'db_user' => $cfgUser,
                     'db_password' => $cfgPass,
                     'db_options' => '',
@@ -58,21 +58,21 @@ class PDOProxy
                     self::$_link = new \PDO($dsn, $user, $password, $opciones);
                     self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 } catch (\Exception $ex) {
-                    $message = new \levitarmouse\core\Response();
+                    $message = new \levitarmouse\core\Codes();
 
-                    $message->setError(\levitarmouse\core\Response::DB_ACCESS_DENIED);
+                    $message->setError(\levitarmouse\core\Codes::DB_ACCESS_DENIED);
 
                     echo $message->errorDescription . PHP_EOL;
                 }
                 break;
             case 'oracledb':
-                throw new \Exception(\levitarmouse\core\Response::DB_DRIVER_NOT_IMPLEMENTED);        
+                throw new \Exception(\levitarmouse\core\Codes::DB_DRIVER_NOT_IMPLEMENTED);
                 break;
             case 'mongodb':
-                throw new \Exception(\levitarmouse\core\Response::DB_DRIVER_NOT_IMPLEMENTED);            
+                throw new \Exception(\levitarmouse\core\Codes::DB_DRIVER_NOT_IMPLEMENTED);
                 break;
             default:
-                throw new \Exception(\levitarmouse\core\Response::DB_INVALID_DRIVER);            
+                throw new \Exception(\levitarmouse\core\Codes::DB_INVALID_DRIVER);
                 break;
         }
 
@@ -102,33 +102,12 @@ class PDOProxy
         return $instance;
     }
 
-//    public function __call($name, $args)
-//    {
-//        if (self::$link) {
-//            $callback = array(self :: $link, $name);
-//            return call_user_func_array($callback, $args);
-//        }
-//    }
-//
-//    public static function __callStatic($name, $args)
-//    {
-//        if (self::$link) {
-//
-//            return call_user_func_array($name, $args);
-//        }
-//    }
-
-//    protected static functoin execute($sSql)
-//    {
-//
-//    }
-
     protected static function prepare($sSql)
     {
         $link = self::$_link;
 
         if (!$link) {
-            throw new \Exception(\levitarmouse\core\Response::DB_ACCESS_FAILED);
+            throw new \Exception(\levitarmouse\core\Codes::DB_ACCESS_FAILED);
         }
         $stmt = $link->prepare($sSql);
         return $stmt;

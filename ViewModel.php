@@ -21,8 +21,6 @@ use levitarmouse\kiss_orm\dto\GetByFilterDTO;
 use levitarmouse\kiss_orm\dto\LimitDTO;
 use levitarmouse\kiss_orm\dto\ModelDTO;
 use levitarmouse\kiss_orm\dto\OrderByDTO;
-use levitarmouse\kiss_orm\dto\PrimaryKeyDTO;
-use levitarmouse\kiss_orm\dto\UniqueKeyDTO;
 use levitarmouse\kiss_orm\interfaces\CollectionInterface;
 use levitarmouse\kiss_orm\interfaces\EntityInterface;
 use stdClass;
@@ -34,7 +32,7 @@ use stdClass;
  *
  * @package   ORM
  * @author    Gabriel Prieto <gab307@gmail.com>
- * @copyright 2012 LM
+ * @copyright 2017 Levitarmouse
  * @link      LM
  */
 abstract class ViewModel
@@ -52,7 +50,8 @@ abstract class ViewModel
     const REMOVAL_OK       = 'REMOVAL_OK';     // Se eliminó en la DB
     const UPDATE_FAILED    = 'UPDATE_FAILED';  // Falló la modificación en la DB
     const UPDATE_OK        = 'UPDATE_OK';      // Se modificó en la DB
-    
+    const DB_DATE_TIME     = 'DB_DATE_TIME';
+
     protected $oMapper;
 
     protected $hasDescriptor;
@@ -73,10 +72,10 @@ abstract class ViewModel
     protected $_dto;
 
     protected $path;
-    
+
     private  $collectionEnd;
 
-    function __construct(EntityDTO $dto = null)
+    function __construct($useDescriptor = true)
     {
         parent::__construct();
 
@@ -86,7 +85,7 @@ abstract class ViewModel
 
         $sFileDescriptor = $this->getFileDescriptorByConvention();
 
-        $oModelDto = new ModelDTO($this->oDb, $this->oLogger, $sFileDescriptor);
+        $oModelDto = new ModelDTO($sFileDescriptor);
 
         if ($this->descriptorLocation) {
             $oModelDto->sFileDescriptorModel = $this->descriptorLocation.'/'.$sFileDescriptor;
@@ -94,7 +93,8 @@ abstract class ViewModel
 
         $className = get_class($this);
 
-        $validateDescriptor = true;
+        $validateDescriptor = $useDescriptor;
+
         $aClassName = explode('\\', $className);
         if ($aClassName) {
             $className = array_pop($aClassName);
@@ -127,21 +127,21 @@ abstract class ViewModel
             }
         }
 
-        $this->aListChange  = array();
-        $this->exists       = false;
-        $this->hasChanges   = false;
-        $this->_isLoading   = false;
-        $this->objectStatus = self::NO_CREATED;
+        $this->aListChange   = array();
+        $this->exists        = false;
+        $this->hasChanges    = false;
+        $this->_isLoading    = false;
+        $this->objectStatus  = self::NO_CREATED;
 
         $this->collectionEnd = false;
+    }
 
-        if ($dto) {
-            if ($dto->pkDTO) {
-                $this->loadByPK($dto->pkDTO);
-            } else if ($dto->ukDTO) {
-                $this->loadByUK($dto->ukDTO);
-            }
-        }
+    protected function setUseDescriptor($bolean) {
+        $this->useDescriptor = $bolean;
+    }
+
+    protected function useDescriptor() {
+        return $this->useDescriptor;
     }
 
     protected function clearCollection() {
@@ -155,6 +155,10 @@ abstract class ViewModel
         $dirname = dirname($rc->getFileName());
 
         $this->descriptorLocation = $dirname;
+    }
+
+    public function setDbDateTime() {
+        return self::DB_DATE_TIME;
     }
 
     /**
@@ -310,7 +314,7 @@ abstract class ViewModel
         }
 
         foreach ($resultSet as $key => $row) {
-            
+
             if ($key === 'lastPage') {
                 $this->lastPage = $row;
             } else if ($key === 'unlimitedSize') {
@@ -319,8 +323,8 @@ abstract class ViewModel
                 $obj = new $className();
                 $obj->fill($row);
 
-                $this->aCollection[] = $obj;                
-            }            
+                $this->aCollection[] = $obj;
+            }
         }
         unset($resultSet);
     }
@@ -346,20 +350,20 @@ abstract class ViewModel
 
         if ($limitDto && $limitDto->justFirst()) {
             $this->collectionSize = count($this->aCollection);
-            
+
             $theFirst = $this->getNext()->getAttribs();
             $this->fill($theFirst);
-            
+
             return;
         }
 
         $this->collectionSize = count($this->aCollection);
-            
+
         if ($readyToSend) {
             return $this->collectionReadyToResponse();
         } else {
             return $this->aCollection;
-        }        
+        }
     }
 
     public function getCollection()
@@ -371,7 +375,7 @@ abstract class ViewModel
     {
         return count($this->aCollection);
     }
-    
+
     public function collectionReadyToResponse() {
         $list = array();
         if ($this->aCollection) {
@@ -379,8 +383,8 @@ abstract class ViewModel
                 $attribs = $row->getAttribs();
                 array_push($list, $attribs);
             }
-        }        
-        return $list;        
+        }
+        return $list;
     }
 
     public function getNext()
@@ -403,6 +407,97 @@ abstract class ViewModel
             } else {
                 return null;
             }
+        }
+    }
+
+    /* ************************************
+     * interfaces\EntityInterface methods
+     * ************************************ */
+
+    public function getById($id)
+    {
+        $aRs = $this->oMapper->getById($id);
+        if (is_array($aRs)) {
+            $this->fillByArray($aRs);
+        } else {
+            $this->fillByObject($aRs);
+        }
+        return true;
+    }
+
+    public function getUniqueKeyValues() {
+        $ukFields = $this->oMapper->getUniqueKey();
+        $values   = $this->getAttribs();
+        $dictionary = array();
+        foreach ($ukFields as $index => $attrib) {
+            if (isset($values[$attrib])) {
+                $dictionary[$attrib] = $values[$attrib];
+            }
+        }
+        return array('ukValues' => $dictionary, 'ukSize' => count($ukFields));
+    }
+
+    public function getPrimaryKeyValues() {
+        $pkFields = $this->oMapper->getPrimaryKey();
+        $values   = $this->getAttribs();
+        $dictionary = array();
+        foreach ($pkFields as $index => $attrib) {
+            if (isset($values[$index])) {
+                $dictionary[$index] = $values[$index];
+            }
+        }
+        return array('pkValues' => $dictionary, 'pkSize' => count($pkFields));
+    }
+
+    public function getByUK()
+    {
+        $uniqueKeyData = $this->getUniqueKeyValues();
+        $currValues = $uniqueKeyData['ukValues'];
+        $ukSize = $uniqueKeyData['ukSize'];
+
+        $filter = new GetByFilterDTO();
+        foreach ($currValues as $field => $dbField) {
+            if (isset($currValues[$field])) {
+                $filter->$field = $currValues[$field];
+            }
+        }
+
+        $filterSize = count($filter->getAttribs());
+        if ($filterSize == $ukSize) {
+            $resultSet = $this->oMapper->getByFilter($filter);
+
+            if (isset($resultSet[0])) {
+                $this->fill($resultSet[0]);
+                $this->objectStatus = self::ALREADY_EXISTS;
+            }
+        } else {
+            $this->objectStatus = self::INVALID_DESCRIPTOR.'->UNIQUE_KEY';
+        }
+    }
+
+
+    public function getByPK()
+    {
+        $primaryKeyData = $this->getPrimaryKeyValues();
+        $currValues = $primaryKeyData['pkValues'];
+        $pkSize = $primaryKeyData['pkSize'];
+
+        $filter = new GetByFilterDTO();
+        foreach ($currValues as $field => $dbField) {
+            if (isset($currValues[$field])) {
+                $filter->$field = $currValues[$field];
+            }
+        }
+
+        $filterSize = count($filter->getAttribs());
+        if ($filterSize == $pkSize) {
+            $resultSet = $this->oMapper->getByFilter($filter);
+
+            if (isset($resultSet[0])) {
+                $this->fill($resultSet[0]);
+            }
+        } else {
+            $this->objectStatus = self::INVALID_DESCRIPTOR.'->PRIMARY_KEY';
         }
     }
 
@@ -529,4 +624,55 @@ abstract class ViewModel
         }
         return $exist;
     }
+
+    public function checkUnique($boolToCreate = null, $boolToUpdate = null)
+    {
+        $originalComponent = $this;
+        $bCreate = (isset($boolToCreate)) ? $boolToCreate : null;
+        $bUpdate = (isset($boolToUpdate)) ? $boolToUpdate : null;
+
+        $originalUK = $originalComponent->getUniqueKeyValues();
+        $originalUK_Size   = $originalUK['ukSize'];
+        $originalUK_Values = $originalUK['ukValues'];
+
+        $componentModel = clone $originalComponent;
+        $filterDTO = new GetByFilterDTO();
+
+        foreach ($originalUK_Values as $key => $value) {
+            $filterDTO->$key = $value;
+        }
+        $componentModel->getByFilter($filterDTO);
+
+        $searchResultSize = $componentModel->getCollectionSize();
+
+        $result = true;
+        if ($bCreate) {
+            if ($searchResultSize != 0) {
+                $result = false;
+            }
+        }
+
+        if ($bUpdate) {
+            if ($searchResultSize != 0) {
+                $duplicatedComponent = $componentModel->getNext();
+
+                $dupCompPK = $duplicatedComponent->getPrimaryKeyValues();
+                $dupCompPKValues = $dupCompPK['pkValues'];
+
+                $origCompPK = $originalComponent->getPrimaryKeyValues();
+                $origCompPKValues = $origCompPK['pkValues'];
+
+                foreach ($origCompPKValues as $key => $value) {
+                    $bDuplicated = ($origCompPKValues[$key] != $dupCompPKValues[$key]);
+                    if ($bDuplicated) {
+                        $result = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+
 }

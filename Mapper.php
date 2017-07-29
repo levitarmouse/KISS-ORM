@@ -24,7 +24,8 @@ use \Exception;
 class Mapper extends \levitarmouse\core\Object
 {
     const DB_CONFIG_FILE_DOESNT_EXIST = 'DB_CONFIG_FILE_DOESNT_EXIST';
-    const DB_CONNECTION_FAILED     = 'DB_CONNECTION_FAILED';
+    const DB_CONNECTION_FAILED        = 'DB_CONNECTION_FAILED';
+    const DB_DATE_TIME       = 'DB_DATE_TIME';
     const SYSDATE_STRING     = 'SYSDATE_STRING';
     const SQL_SYSDATE_STRING = 'SQL_SYSDATE_STRING';
     const EMPTY_STRING       = 'EMPTY_STRING';
@@ -45,11 +46,9 @@ class Mapper extends \levitarmouse\core\Object
     static $fTime         = 0;
     static $iCountAction  = 0;
 
-    /* @var $oDb \levitarmouse\core\database\Database */
-//    public $oDb;
     public static $oDb;
     public $oLogger;
-    
+
     public static $dbCfg;
 
     /**
@@ -64,8 +63,8 @@ class Mapper extends \levitarmouse\core\Object
     {
         if (self::$oDb) {
             return;
-        }        
-        
+        }
+
         if ($oDB) {
             self::$oDb = $oDB;
         } else {
@@ -75,24 +74,21 @@ class Mapper extends \levitarmouse\core\Object
             $this->oLogger = $oLogger;
         }
     }
-    
+
     public function getDbConfig() {
         return self::$dbCfg;
     }
-    
+
     public static function connect()
     {
         $dbConfigPath = KISSORM_DB_CONFIG;
-//        $logsConfigPath 
         $dbCfg = new \levitarmouse\core\ConfigIni($dbConfigPath);
         self::$dbCfg = $dbCfg;
-        
-//        $oProxy    = PDOProxy::getInstance($dbCfg);
+
         $oProxy = \levitarmouse\kiss_orm\database\PDOProxy::getInstance($dbCfg);
 
-
         $database = new database\Database($oProxy);
-        
+
         self::$oDb = $database;
     }
 
@@ -263,7 +259,7 @@ EOQ;
     public function execute($sSql, $aBnd)
     {
         $db = self::$oDb;
-        
+
         $iResult = 0;
         try {
             if (!$db) {
@@ -306,7 +302,7 @@ EOQ;
     public function insert($sSql, $aBnd)
     {
         $db = self::$oDb;
-        
+
         $iResult = 0;
         try {
             if (!$db) {
@@ -349,7 +345,7 @@ EOQ;
     public function update($sSql, $aBnd)
     {
         $db = self::$oDb;
-        
+
         $iResult = 0;
         try {
             if (!$db) {
@@ -392,7 +388,7 @@ EOQ;
     public function delete($sSql, $aBnd)
     {
         $db = self::$oDb;
-        
+
         $iResult = 0;
         try {
             if (!$db) {
@@ -445,7 +441,7 @@ EOQ;
     public function select($sSql, $aBnd = array() )
     {
         $db = self::$oDb;
-        
+
         $aResult = null;
 
             if (!$db) {
@@ -454,26 +450,15 @@ EOQ;
 
                 $iTimeStart = (microtime(true));
                 $aResult = $db->selectWithBindings($sSql, $aBnd);
-                
+
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
-
-//                $dbError = $db->getError();
 
                 self::$iCountSelect ++;
                 self::$iCountAction ++;
                 self::$fTime += $fTime;
 
 
-//            }
-//        }
-//        catch (Exception $e) {
-//            if ($this->oLogger) {
-//                $this->oLogger->logDebug($e->getMessage());                
-//            }
-//            $aResult = $e->getMessage();
-////            $this->logTrace();
-//        }
         return $aResult;
     }
 
@@ -487,7 +472,7 @@ EOQ;
     public function prepareAndSelect($query, $params)
     {
         $db = self::$oDb;
-        
+
         try {
             if (!$db) {
                 throw new Exception(__CLASS__.' DbConection not present');
@@ -532,7 +517,7 @@ QUERY;
         }
         catch (Exception $e) {
             if ($this->oLogger) {
-                $this->oLogger->logDebug($e->getMessage());                
+                $this->oLogger->logDebug($e->getMessage());
             }
             $aResult = $e->getMessage();
         }
@@ -544,7 +529,7 @@ QUERY;
         if ($message) {
             levitarmouse\core\Logger::logWarning($message);
         }
-        
+
         return;
     }
 

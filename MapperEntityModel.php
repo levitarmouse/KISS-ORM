@@ -44,7 +44,6 @@ implements EntityInterface,
     protected $aFieldMappingWrite            = array();
     protected $aFieldMappingUniqueKeyAttribs = array();
     protected $aFieldMappingPrimaryKeyAttribs = array();
-    //protected $sOrganizationIdFieldName      = '';
     protected $iCountFileds;
     protected $sEntityDescriptionFileName;
     protected $hasDescriptor = false;
@@ -75,31 +74,6 @@ implements EntityInterface,
             }
         }
 
-//        $bPathConf = false;
-//        if (defined('ORM_ENTITY_DESCRIPTOR_PATH')) {
-//            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
-//                $bPathConf = true;
-//            }
-//        }
-//        $descriptor = false;
-//        if ($dto->sFileDescriptorModel) {
-//            if (file_exists($dto->sFileDescriptorModel)) {
-//                $descriptor = true;
-//            }
-////            if (!empty(ORM_ENTITY_DESCRIPTOR_PATH)) {
-////                $bPathConf = true;
-////            }
-//        }
-
-//        if ($bPathConf) {
-//            $this->_descriptorPath = ORM_ENTITY_DESCRIPTOR_PATH;
-//            $x = $this->_descriptorPath;
-//        } else {
-////            $this->_descriptorPath = __DESCRIPTORS__.'/'.'entities_descriptors/';
-//            $this->_descriptorPath = $this->
-//            $x = $this->_descriptorPath;
-//        }
-
         $oDB         = ($dto->oDB) ? $dto->oDB : null;
         $oLogger     = ($dto->oLogger) ? $dto->oLogger : null;
         $sConfigFile = ($dto->sFileDescriptorModel) ? $dto->sFileDescriptorModel : '';
@@ -117,7 +91,6 @@ implements EntityInterface,
         }
 
         if ($sEntityDescriptor) {
-//            $finalDescriptorLocation = $this->_descriptorPath.$sEntityDescriptor;
             $finalDescriptorLocation = $sEntityDescriptor;
             if (file_exists($finalDescriptorLocation)) {
                 $this->_loadConfig($finalDescriptorLocation);
@@ -191,12 +164,6 @@ implements EntityInterface,
         $this->sEntityDescriptionFileName = $descriptionFileName;
     }
 
-    public function getPrimaryKey()
-    {
-//        return (isset($this->primary_key)) ? $this->primary_key : '';
-        return (isset($this->aFieldMappingPrimaryKeyAttribs)) ? $this->aFieldMappingPrimaryKeyAttribs : array();
-    }
-
     public function getSchema()
     {
         return (isset($this->schema)) ? $this->schema : '';
@@ -216,27 +183,21 @@ implements EntityInterface,
     {
         return (isset($this->aFieldMappingPrimaryKeyAttribs)) ? $this->aFieldMappingPrimaryKeyAttribs : array();
     }
+    public function getPrimaryKey()
+    {
+        $primaryKey = array_keys($this->getFieldMappingPrimaryKey());
+        $primaryKey = $this->getFieldMappingPrimaryKey();
+        return $primaryKey;
+    }
 
     public function getFieldMappingUniqueKey()
     {
         return (isset($this->aFieldMappingUniqueKeyAttribs)) ? $this->aFieldMappingUniqueKeyAttribs : array();
     }
-    /*
-    public function getDbFieldControllerType()
-    {
-        return (isset($this->sControllerTypeFieldName)) ? $this->sControllerTypeFieldName : '';
-    }
-    */
-    public function getAttribAsUniqueKey()
-    {
-        $sAttrib = '';
-        if (is_array($this->aFieldMappingUniqueKeyAttribs)) {
-            $aCopy = $this->aFieldMappingUniqueKeyAttribs;
-            array_flip($aCopy);
+    public function getUniqueKey() {
 
-            $sAttrib = $aCopy[$this->primary_key];
-        }
-        return $sAttrib;
+        $uniqueKey = array_keys($this->getFieldMappingUniqueKey());
+        return $uniqueKey;
     }
 
     public function getAttribByFieldName($fieldName)
@@ -266,8 +227,6 @@ implements EntityInterface,
      */
     public function getById($id)
     {
-//        $id = $dto->id;
-
         $bt = self::$backTick;
 
         $sSchema      = $this->schema;
@@ -329,19 +288,11 @@ implements EntityInterface,
         }
         return array();
     }
-    /* ***************************
-     * EntityInterface methods END
-     * *************************** */
-
-    /* ***************************
-     * CollectionInterface methods START
-     * *************************** */
 
     /**
      *
      * @return type
      */
-//    public function getAll(dto\GetAllDTO $dto)
     public function getAll()
     {
         $sSql = "select * from ".$this->getSchema().".".$this->getTableName();
@@ -364,10 +315,6 @@ implements EntityInterface,
         if ($filterDTO) {
             $filter = $filterDTO->getFilter();
 
-            // Caso de uso de Filtro, enviado vacio
-//            if (!$filter) {
-//                return array();
-//            }
         }
 
         $order = null;
@@ -389,8 +336,6 @@ implements EntityInterface,
         $limitRows = null;
         if ($limitDto) {
             return $this->getByFilterLimited($filterDTO, $orderDto, $limitDto);
-            
-//            $limitRows = $limitDto;
         }
 
         if ($sMainTable) {
@@ -443,7 +388,7 @@ implements EntityInterface,
 
                 $first = false;
             }
-            
+
             $sSql = str_replace('{{TableOrView.fields}}', $queryFields, $sSql);
 
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
@@ -487,7 +432,7 @@ implements EntityInterface,
                     $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
                     $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
                     $bNE   = strlen(strstr($value, '$NE')) > 1;
-                    
+
                     if ($bAND) {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                         $value = str_replace('$AND.', '', $value);
@@ -565,38 +510,30 @@ implements EntityInterface,
             }
 
             if ($limitRows) {
-                
+
                 $sSql = "select TableOrView.* from (".$sSql;
-                
+
                 $sSql .= ") TableOrView";
-                
+
                 if (isset($limitRows->pageNumber)) {
                     $pageNumber = $limitRows->pageNumber;
                     $pageSize = $limitRows->pageSize;
                     $from = ($pageSize * ($pageNumber - 1));
                     $to   = (($pageSize * $pageNumber) ) -1;
-                    
+
                 } else {
                     $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
-                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;                    
+                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;
                 }
 
 
-//                $aBnd['pageStart'] = $page->firstRow;
-//                $aBnd['pageEnd'] = $page->lastRow;
-
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
-//                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
-//                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
                         $pageSql = " WHERE TableOrView.ROWNUM >= $from AND TableOrView.ROWNUM <= $to";
                         break;
                     case 'ORACLE':
                         break;
                 }
-
-//                $aBnd['pageStart'] = $page->firstRow;
-//                $aBnd['pageEnd'] = $page->lastRow;
 
                 $sSql .= $pageSql;
             }
@@ -605,11 +542,8 @@ implements EntityInterface,
             foreach ($aBnd as $field => $value) {
                 //                $sLogValues .= @$field.'->['.$value.'] ';
             }
-            //            $this->oLogger->logDbChanges("select from {$tableName} where {$sLogValues}", 'SELECT');
 
             $aResult = $this->select($sSql, $aBnd);
-
-            //            $this->oLogger->logDbChanges("result: ".serialize($aResult));
 
             if (is_array($aResult)) {
                 return $aResult;
@@ -678,12 +612,9 @@ implements EntityInterface,
                         $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
                     }
                 }
-                
-//                $t1 = '';
 
                 $comma = ($first) ? ' ' : ', ';
 
-//                $queryFields .= $comma. $t1.$bt.$sTemp.$bt;
                 $queryFields .= $comma. $bt.$sTemp.$bt;
 
                 if (isset($filterDTO->$classAttrib)) {
@@ -696,19 +627,11 @@ implements EntityInterface,
 
                 $first = false;
             }
-            
+
             $sSql = str_replace('{{TableOrView.fields}}', $queryFields, $sSql);
 
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
-
-//            switch ($this->dbEngineVendor) {
-//                case 'MYSQL':
-//                    $sFrom  = " FROM (SELECT @rownum:=0) r, {$tableName} ";
-//                    break;
-//                case 'ORACLE':
             $sSql  .= " FROM $tableName ";
-//                    break;
-//            }
 
             $sWhere = 'WHERE 1 = 1';
 
@@ -746,7 +669,7 @@ implements EntityInterface,
                     $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
                     $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
                     $bNE   = strlen(strstr($value, '$NE')) > 1;
-                    
+
                     if ($bAND) {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                         $value = str_replace('$AND.', '', $value);
@@ -800,11 +723,7 @@ implements EntityInterface,
                 }
             }
 
-//            $sSql .= $sFrom;
-
             $sSql .= $sWhere;
-
-//            $sSql .= $sFrom.') TableOrView';
 
             if ($order) {
 
@@ -818,11 +737,6 @@ implements EntityInterface,
 
                         $orderStr .= $comma.$bt.$field.$bt." ".$direction;
 
-    //                    if ($order->direction) {
-    //                        $direction = $order->direction;
-    //                        $orderStr .= " ".$direction;
-    //                    }
-
                         $bFirst = false;
                     }
                 } else {
@@ -833,52 +747,47 @@ implements EntityInterface,
             }
 
             if ($limitRows) {
-                
+
                 $sSql .= ") TableOrView ) limited";
-                
+
                 $sSqlSize = "select count(unlimitedResult.rownum) as SIZE from (".$sSql.") unlimitedResult";
-                
+
                 $unlimitedSizeRS = $this->select($sSqlSize, $aBnd);
                 $unlimitedSize = $unlimitedSizeRS[0]['SIZE'];
-                
+
                 if (isset($limitRows->pageNumber)) {
                     $pageNumber = $limitRows->pageNumber;
                     $pageSize = $limitRows->pageSize;
-                    
+
                     $from = ($pageNumber-1)*$pageSize+1;
                     $to = $pageSize * $pageNumber;
-                    
+
                 } else {
                     $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
                     $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;
                 }
-                
+
                 $lastPage = false;
-                
+
                 if ($from >= $unlimitedSize) {
                     $from = $unlimitedSize - $pageSize;
                     $from = ($from > 0 ) ? $from : 0;
                 }
-                
-                
+
+
                 if ($to >= $unlimitedSize) {
                     $to == $unlimitedSize;
-                    
+
                     $lastPage = true;
                 }
 
                 switch ($this->dbEngineVendor) {
                     case 'MYSQL':
-//                        $pageSql = " WHERE @rownum >= :pageStart AND @rownum <= :pageEnd";
-//                        $pageSql = " WHERE @rownum >= $from AND @rownum <= $to";
                         $pageSql = " WHERE limited.ROWNUM >= $from AND limited.ROWNUM <= $to";
                         break;
                     case 'ORACLE':
                         break;
                 }
-
-//                $aBnd['pageStart'] = $page->firstRow;
-//                $aBnd['pageEnd'] = $page->lastRow;
 
                 $sSql .= $pageSql;
             }
@@ -887,17 +796,14 @@ implements EntityInterface,
             foreach ($aBnd as $field => $value) {
                 //                $sLogValues .= @$field.'->['.$value.'] ';
             }
-            //            $this->oLogger->logDbChanges("select from {$tableName} where {$sLogValues}", 'SELECT');
 
             $aResult = $this->select($sSql, $aBnd);
 
-            //            $this->oLogger->logDbChanges("result: ".serialize($aResult));
-
             if (is_array($aResult)) {
-                
+
                 $aResult['lastPage']      = $lastPage;
                 $aResult['unlimitedSize'] = $unlimitedSize;
-                
+
                 return $aResult;
             } else {
                 throw new \Exception($aResult);
@@ -910,7 +816,6 @@ implements EntityInterface,
     /* ***************************
      * CollectionInterface methods END
      * *************************** */
-
     public function create($aValues)
     {
         $bt = self::$backTick;
@@ -962,8 +867,6 @@ implements EntityInterface,
 
             $sSchemaTable = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
-            // Logging
-
             $sSql = "
            INSERT INTO {$sSchemaTable}
                       ({$sFields})
@@ -977,7 +880,9 @@ implements EntityInterface,
 
     private function _replaceConstant($value)
     {
-        if ($value === Mapper::SYSDATE_STRING || $value === Mapper::SQL_SYSDATE_STRING) {
+        if ( $value === Mapper::SYSDATE_STRING
+             || $value === Mapper::SQL_SYSDATE_STRING
+             || $value === ViewModel::DB_DATE_TIME) {
             switch ($this->dbEngineVendor) {
                 case 'MYSQL':
                     $value = "NOW()";
@@ -1007,10 +912,12 @@ implements EntityInterface,
 
         $fieldMapping = $this->aFieldMapping;
 
-        foreach ($attribsArray as $key => $value) {
+        if ($attribsArray) {
+            foreach ($attribsArray as $key => $value) {
 
-            if (isset($attribsArray[$key])) {
-                $result[$fieldMapping[$key]] = $value;
+                if (isset($attribsArray[$key])) {
+                    $result[$fieldMapping[$key]] = $value;
+                }
             }
         }
 
@@ -1022,6 +929,7 @@ implements EntityInterface,
         if (in_array($value, array(
             Mapper::SYSDATE_STRING,
             Mapper::SQL_SYSDATE_STRING,
+            Mapper::DB_DATE_TIME,
             Mapper::EMPTY_STRING,
             Mapper::SQL_EMPTY_STRING,
             Mapper::NULL_STRING,
@@ -1178,7 +1086,6 @@ implements EntityInterface,
 
     public function valueAlreadyExists($sTableName, $sFieldName, $sValue, $sExcludeField = '', $iExcludeId = '')
     {
-        // TODO
         $bResult = false;
 
         $sSql     = <<<EOQ

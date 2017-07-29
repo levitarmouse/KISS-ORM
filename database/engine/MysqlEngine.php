@@ -8,16 +8,14 @@ class MysqlEngine
 
     private function __construct($cfg)
     {
-        
+
         $cfgDbname = isset($cfg->dbname) ? $cfg->dbname : null;
         $cfgHost   = isset($cfg->host)   ? $cfg->host   : null;
         $cfgPass   = isset($cfg->pass)   ? $cfg->pass   : null;
 //        $cfgPort   = isset($cfg->port)   ? $cfg->port   : null;
         $cfgUser   = isset($cfg->user)   ? $cfg->user   : null;
-        
-        
-//        switch (strtolower($cfgDriver)) {
-//            case 'mysql':
+
+
                 $Config = array(
                     'dsn' => array('host' => $cfgHost, 'dbname' => $cfgDbname),
                     'db_driver' => 'mysql',
@@ -49,9 +47,9 @@ class MysqlEngine
                     self::$_link = new \PDO($dsn, $user, $password, $opciones);
                     self::$_link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 } catch (\Exception $ex) {
-                    $message = new \levitarmouse\core\Response();
+                    $message = new \levitarmouse\core\Codes();
 
-                    $message->setError(\levitarmouse\core\Response::DB_ACCESS_DENIED);
+                    $message->setError(\levitarmouse\core\Codes::DB_ACCESS_DENIED);
 
                     echo $message->errorDescription . PHP_EOL;
                 }
@@ -82,28 +80,13 @@ class MysqlEngine
         return $instance;
     }
 
-//    public function __call($name, $args)
-//    {
-//        if (self::$link) {
-//            $callback = array(self :: $link, $name);
-//            return call_user_func_array($callback, $args);
-//        }
-//    }
-//
-//    public static function __callStatic($name, $args)
-//    {
-//        if (self::$link) {
-//
-//            return call_user_func_array($name, $args);
-//        }
-//    }
 
     protected static function prepare($sSql)
     {
         $link = self::$_link;
 
         if (!$link) {
-            throw new \Exception(\levitarmouse\core\Response::DB_ACCESS_FAILED);
+            throw new \Exception(\levitarmouse\core\Codes::DB_ACCESS_FAILED);
         }
         $stmt = $link->prepare($sSql);
         return $stmt;

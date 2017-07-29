@@ -37,65 +37,11 @@ namespace levitarmouse\kiss_orm\dto;
  *
  */
 
-class DTO
+class DTO extends \levitarmouse\core\Object
 {
-    private $_aData;
 
-    public function __construct()
+    public function setAttribs($arrayDictionary)
     {
-        $this->_aData = array();
+        $this->_aData = $arrayDictionary;
     }
-
-    public function getAttribs()
-    {
-        return $this->_aData;
-    }
-
-    public function setAttribs($dictionary)
-    {
-        $this->_aData = $dictionary;
-    }
-
-    public function __get($name)
-    {
-        $return = ( isset($this->_aData[$name]) ) ? $this->_aData[$name] : null;
-        return $return;
-    }
-
-    public function __set($name, $value)
-    {
-        $this->_aData[$name] = $value;
-    }
-
-    public function __isset($name)
-    {
-        $return = ( array_key_exists($name, $this->_aData) ) ? true : false;
-        return $return;
-    }
-
-    public function __call($name, $arguments)
-    {
-        throw new Exception('ERROR_METHOD_DOES_NOT_EXIST ['.$name.']');
-    }
-
-//    public static function __callStatic($name, $arguments)
-//    {
-//        throw new Exception('ERROR_STATIC_METHOD_DOES_NOT_EXIST ['.$name.']');
-//    }
-
-//    public function __isset($name)
-//    {
-////        throw new Exception('ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']');
-////        return 'ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']';
-//    }
-
-    public function __unset($name)
-    {
-        if (isset($this->$name)) {
-            unset($this->_aData[$name]);
-        }
-//        throw new Exception('ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']');
-//        return 'ERROR_PROPERTY_DOES_NOT_EXIST ['.$name.']';
-    }
-
 }

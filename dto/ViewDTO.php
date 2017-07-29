@@ -1,11 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace levitarmouse\kiss_orm\dto;
 
 /**
@@ -15,15 +9,21 @@ namespace levitarmouse\kiss_orm\dto;
  */
 class ViewDTO extends \levitarmouse\core\Object
 {
+    public $useDescriptor;
 
-    public $oDB;
-    public $oLogger;
-
-    function __construct($oDB = null, $oLogger = null)
+    function __construct($useDescriptor = true)
     {
-        $this->oDB     = $oDB;
-        $this->oLogger = $oLogger;
-
+        $this->start($useDescriptor);
     }
 
+    public function start($useDescriptor)
+    {
+        $this->useDescriptor = (isset($useDescriptor)) ? $useDescriptor : true;
+
+        $this->started = true;
+    }
+
+    public function started() {
+        return $this->started;
+    }
 }

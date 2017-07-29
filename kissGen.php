@@ -1,33 +1,5 @@
 <?php
 
-//if (isset($argc) && isset($argv)) {
-//    $actions    = $argc;
-//    $actionList = $argv;
-//
-//    if ($actions) {
-//        echo '$actions '.json_encode($actions).EOL;
-//        echo '$actionList '.json_encode($actionList).EOL;
-//    }
-//
-//    if ($actions == 2) {
-//            echo "action".EOL;
-//            $action = $actionList[1];
-//            echo $action.EOL;
-//    }
-//
-//    if ($actions == 3) {
-//            echo "action".EOL;
-//            $action = $actionList[1];
-//            $data = $actionList[2];
-//            echo $action.EOL;
-//            echo $data.EOL;
-//    }
-//
-//}
-//
-//die;
-
-
 $client = php_sapi_name();
 
 if ($client == 'cli') {
@@ -54,10 +26,6 @@ $tables = array();
 // List of tables for which you want to create INI descriptors
 // AS: Table Name-> array index. Class name -> value;
 
-//if (!empty($action)) {
-//
-//    if ($action = 'run') {
-
         if (file_exists('tables.ini')) {
             echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ...".EOL;
             $listTables = parse_ini_file('tables.ini', true, INI_SCANNER_RAW);
@@ -73,7 +41,6 @@ $tables = array();
             echo "   "."|=======================================================".EOL;
             echo "   "."|   No se halló configuración para generar descriptores ".EOL;
             echo "   "."|=======================================================".EOL;
-//            die;
         }
 
         ////////////////////////////////////////////
@@ -91,7 +58,7 @@ $tables = array();
         $model = new \levitarmouse\kiss_orm\GenericEntity();
 
         // Retrive Database configuration
-        $dbConfig = new \levitarmouse\core\ConfigIni(__DIR__ . '/config/database.ini');
+        $dbConfig = new \levitarmouse\core\ConfigIni(KISSORM_DB_CONFIG);
 
         $engine = $dbConfig->get('DEFAULT.EngineToUse');
 
@@ -169,15 +136,14 @@ $tables = array();
                     $psr0Path = implode('/', $aNameSpace);
 
                     $psr0Destination = $destination.$psr0Path;
-                    
+
                     echo " destination".$destination.PHP_EOL;
                     echo "Creando la carpeta ".$psr0Destination.PHP_EOL;
-                    
+
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
                     }
 
-//                    $destination = $psr0Destination;
                 }
 
                 $result = $model->getMapper()->select($query . ' ' . $table);
@@ -187,7 +153,7 @@ $tables = array();
 
                     $className = (!empty($className)) ? $className : ucfirst($data);
                     $className = ($className) ? $className : ucfirst($table);
-                    
+
                     $bJson = is_object(json_decode($className));
                     if ($bJson) {
                         $className = ucfirst($table);
@@ -271,8 +237,6 @@ $tables = array();
                 }
             }
 
-//            setPermissions($destination);
-
             $showInfo = true;
 
         } catch (\Exception $ex) {
@@ -287,16 +251,14 @@ $tables = array();
             echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
             foreach ($resultTables as $key => $data) {
 
-//                $oData = extractModelData($data);
-
                 $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
                 $className = str_pad('  '.$data->className.'  ', 22, ' ', STR_PAD_RIGHT);
-                
+
                 if (empty(trim($className))) {
                     $className = str_pad('<- No se creó Class   ', 22, ' ', STR_PAD_RIGHT);
 
                 }
-                
+
                 $nameSpace = str_pad('  '.$data->nameSpace.'  ', 37, ' ', STR_PAD_RIGHT);
 
                 echo "   " . "\_____" . $tableName . '|' . $className . '|' . $nameSpace .'|'. EOL;
@@ -314,20 +276,6 @@ if ($client != 'cli') {
     echo "</pre>";
 }
 
-
-//    }
-//}
-//else {
-//    echo "kissGenn:".EOL;
-//    echo EOL;
-//    echo '$php kissgen -run: Generarar todo los descriptores y clases indicados en tables.ini'.EOL;
-//    echo '$php kissgen -t TableName : Generarar el descriptor y class inidicados como parámetros'.EOL;
-//    echo '$php kissgen -c ClassName: Generarar el descriptor y class inidicados como parámetros'.EOL;
-//    echo '$php kissgen -ns NameSpace: Generarar el descriptor y class inidicados como parámetros'.EOL;
-//    echo EOL;
-//
-//}
-
 function extractModelData($data) {
 
     $oData = json_decode($data, true);
@@ -336,7 +284,7 @@ function extractModelData($data) {
     $nameSpace = '';
 
     if (is_array($oData)) {
-        
+
         $oData['ClassName'] = isset($oData['ClassName']) ? $oData['ClassName'] : ' ';
         $oData['NameSpace'] = isset($oData['NameSpace']) ? $oData['NameSpace'] : ' ';
 
@@ -367,11 +315,10 @@ function extractModelData($data) {
 
 function makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destination = '') {
 
-//    global $destination;
     $isView = preg_match('(VIEW)', strtoupper($objectType));
-    
+
     $parentName = ($isView) ? 'ViewModel' : 'EntityModel';
-    
+
     $file = $psr0Destination . '/' . $className . '.php';
 
     $phpFile = fopen($file, 'w+');
@@ -450,7 +397,6 @@ function validateTable($tableName) {
     switch ($engine) {
         default:
         case 'MYSQL':
-//            $query  = 'SELECT *
             $query = <<< QUERY
                 SELECT TABLE_TYPE
                   FROM information_schema.tables

@@ -17,16 +17,6 @@ $path = realpath(__DIR__);
 include_once $path.'/config/Bootstrap.php';
 
 use Exception;
-use levitarmouse\kiss_orm\dto\EntityDTO;
-use levitarmouse\kiss_orm\dto\GetByFilterDTO;
-use levitarmouse\kiss_orm\dto\LimitDTO;
-use levitarmouse\kiss_orm\dto\ModelDTO;
-use levitarmouse\kiss_orm\dto\OrderByDTO;
-use levitarmouse\kiss_orm\dto\PrimaryKeyDTO;
-use levitarmouse\kiss_orm\dto\UniqueKeyDTO;
-//use levitarmouse\kiss_orm\interfaces\CollectionInterface;
-//use levitarmouse\kiss_orm\interfaces\EntityInterface;
-use stdClass;
 
 /**
  * EntityModel class
@@ -49,47 +39,6 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
     {
         return $this->oMapper->getNextId();
     }
-
-    /* ************************************
-     * interfaces\EntityInterface methods
-     * ************************************ */
-
-    public function getById($id)
-    {
-        $aRs = $this->oMapper->getById($id);
-        if (is_array($aRs)) {
-            $this->fillByArray($aRs);
-        } else {
-            $this->fillByObject($aRs);
-        }
-        return true;
-    }
-
-    public function getByUK(GetByFilterDTO $filterDTO)
-    {
-        $resultSet = $this->oMapper->getByFilter($filterDTO);
-
-        if (isset($resultSet[0])) {
-            $this->fill($resultSet[0]);
-        }
-    }
-
-    public function getByPK(GetByFilterDTO $filterDTO)
-    {
-        $resultSet = $this->oMapper->getByFilter($filterDTO);
-
-        if (isset($resultSet[0])) {
-            $this->fill($resultSet[0]);
-        }
-    }
-
-    /**
-     * @return nothing
-     */
-//    public function loadRelated()
-//    {
-//        return;
-//    }
 
     /**
      * create
@@ -134,15 +83,16 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         $iResult = 0;
         $aWhere  = array();
 
-        $aUniqueKey = $this->oMapper->getPrimaryKey();
-        if (is_array($aUniqueKey) && count($aUniqueKey) > 0) {
+        $aPrimaryKey = $this->oMapper->getPrimaryKey();
+        if (is_array($aPrimaryKey) && count($aPrimaryKey) > 0) {
             try {
-                foreach ($aUniqueKey as $sField => $sAttrib) {
-                    $attrib = $this->oMapper->getAttribByFieldName($sAttrib);
-                    if ($this->{$attrib->attribName} === null) {
-                        throw new Exception('MAPPED_ENTITY_ERROR_COULD_NOT_DETERMINE_CONDITION_FOR_MODIFICATION');
-                    }
-                    $aWhere[$sAttrib] = $this->{$attrib->attribName};
+                foreach ($aPrimaryKey as $objAttrib => $dbField) {
+//                    $attrib = $this->oMapper->getAttribByFieldName($dbField);
+                    $aWhere[$dbField] = $this->$objAttrib;
+                }
+
+                if (count($aWhere) == 0) {
+                    throw new Exception('MAPPED_ENTITY_ERROR_COULD_NOT_DETERMINE_CONDITION_FOR_MODIFICATION');
                 }
 
                 $aValues = $this->getValues(true);
