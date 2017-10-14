@@ -13,7 +13,7 @@ $garbage = array_pop($aRootProjectPath);
 
 $composerInstalationPath = implode('/', $aRootProjectPath)."/vendor/";
 $configPath              = implode('/', $aRootProjectPath)."/config/kissorm/";
-$descriptorsPath         = implode('/', $aRootProjectPath)."/descriptors/";
+$descriptorsPath         = implode('/', $aRootProjectPath)."/ormDescriptors/";
 
 if (!defined('KISSORM_CONFIG_PATH')) {
     define("KISSORM_CONFIG_PATH", $configPath);

@@ -11,8 +11,8 @@ En composer.json agregar:
 :
     "scripts": {
         "post-update-cmd":  ["php -r \"shell_exec('mkdir -p config/kissorm');\"",
-                             "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/tables.ini .');\"",
-                             "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/kissGen.php .');\"",
+                             "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/ormModels.ini .');\"",
+                             "php -r \"shell_exec('ln -s ./vendor/levitarmouse/kiss_orm/ormKissGen.php .');\"",
                              "php -r \"shell_exec('cd ./config/kissorm/; ln -s ../../vendor/levitarmouse/kiss_orm/config/Bootstrap.php .');\"",
                              "php -r \"shell_exec('cd ./config/kissorm/; ln -s ../../vendor/levitarmouse/kiss_orm/config/database.ini .');\"",
                              ""],

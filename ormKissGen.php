@@ -26,14 +26,14 @@ $tables = array();
 // List of tables for which you want to create INI descriptors
 // AS: Table Name-> array index. Class name -> value;
 
-        if (file_exists('tables.ini')) {
-            echo "Se halló tables.ini. Se utilizará para determinar la lista de tablas a mapear ...".EOL;
-            $listTables = parse_ini_file('tables.ini', true, INI_SCANNER_RAW);
-
+        if (file_exists('ormModels.ini')) {
+            $listTables = parse_ini_file('ormModels.ini', true, INI_SCANNER_RAW);
             $tables = $listTables['tables'];
         } else {
-            $tables['users'] = 'User';
-            $tables[] = '';
+            echo "No se halló el archivo ./ormModels.ini".EOL;
+            echo "El mismo se utiliza para determinar la lista de objetos de la base de datos a mapear ...".EOL;
+            echo "".EOL;
+            echo "".EOL;
         }
 
         $nTables = count($tables);
@@ -73,7 +73,7 @@ $tables = array();
 
                 echo EOL;
                 echo "---------------------------------------------". EOL;
-                echo "--- Se creó la carpeta " . $destination . EOL;
+                echo "--- Se creó el directorio " . $destination . EOL;
                 echo "---------------------------------------------";
                 echo EOL;
                 echo "En ella se almacenarán los descriptores y Classes asociadas al ORM" . EOL;
@@ -81,14 +81,14 @@ $tables = array();
                 echo EOL;
                 echo "Sin embargo ...". EOL;
                 echo EOL;
-                echo "No se pudo crear la carpeta :" . $destination . EOL;
+                echo "No se pudo crear el directorio :" . $destination . EOL;
                 echo EOL;
                 echo "Se requieren permisos sobre el sistema de archivos para hacerlo!" . EOL;
                 echo EOL;
-                echo "Sino acceda desde una consola a la carpeta:".EOL;
+                echo "Acceda desde una consola a el directorio:".EOL;
                 echo realpath(__DIR__."/../../../"). EOL;
                 echo " y ejecute el siguiente comando:".EOL;
-                echo '$ php kissGen.php'.EOL;
+                echo '$ php -f ormKissGen.php'.EOL;
                 die;
             }
         }
@@ -135,10 +135,10 @@ $tables = array();
 
                     $psr0Path = implode('/', $aNameSpace);
 
-                    $psr0Destination = $destination.$psr0Path;
+                    $psr0Destination = $psr0Path;
 
-                    echo " destination".$destination.PHP_EOL;
-                    echo "Creando la carpeta ".$psr0Destination.PHP_EOL;
+                    echo "* Destination Folder ".$destination.PHP_EOL;
+                    echo "* Creating PSR0 tree ".$psr0Destination.PHP_EOL;
 
                     if (!file_exists($psr0Destination)) {
                         $bMkDir = mkdir($psr0Destination, 0777, true);
@@ -246,9 +246,9 @@ $tables = array();
 
         if ($showInfo) {
             echo EOL;
-            echo "   " . "|=====================================================================================|" . EOL;
-            echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS           |" . EOL;
-            echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =============|" . EOL;
+            echo "   " . "|===============================================================================================|" . EOL;
+            echo "   " . "|  SEGÚN LAS SIGUIENTES  |        SE GENERÓ LA SIGUIENTE LISTA DE ELEMENTOS                     |" . EOL;
+            echo "   " . "|===== TABLAS/VISTAS=====|====== CLASSes =======|============ NAMESPACEs =======================|" . EOL;
             foreach ($resultTables as $key => $data) {
 
                 $tableName = str_pad($data->tableName.'  ', 19, '_', STR_PAD_LEFT);
@@ -259,7 +259,7 @@ $tables = array();
 
                 }
 
-                $nameSpace = str_pad('  '.$data->nameSpace.'  ', 37, ' ', STR_PAD_RIGHT);
+                $nameSpace = str_pad('  '.$data->nameSpace.'  ', 47, ' ', STR_PAD_RIGHT);
 
                 echo "   " . "\_____" . $tableName . '|' . $className . '|' . $nameSpace .'|'. EOL;
             }
@@ -326,7 +326,7 @@ function makePhpClass($result, $className, $aNameSpace, $objectType, $psr0Destin
     $code = <<<CODE
 <?php
 /*
- * CODIGO AUTOGENERADO POR kissDesc. KISS-ORM
+ * CODIGO AUTOGENERADO POR kissGen. KISS-ORM
  */
 {{namespace}}
 /**
