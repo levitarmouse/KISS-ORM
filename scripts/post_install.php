@@ -39,4 +39,3 @@ if (file_exists($databaseCfg)) {
 symlink('./vendor/levitarmouse/kiss_orm/ormKissGen.php', './ormKissGen.php');
 
 symlink($ormCfgPath.'/../../vendor/levitarmouse/kiss_orm/config/Bootstrap.php', 'config/kissorm/Bootstrap.php');
-
