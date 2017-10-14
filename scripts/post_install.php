@@ -19,21 +19,24 @@ if (!is_dir($ormCfgPath)) {
 }
 
 //  files after installation
-$databaseCfg = './config/kissorm/database.ini';
 $modelsInfo  = './ormModels.ini';
+
+$databaseCfg = './config/kissorm/database.ini';
 
 if (file_exists($modelsInfo)) {
     echo 'INFO -> ALREADY EXIST ->'.$modelsInfo.PHP_EOL;
     echo ' WILL BE PRESERVED!!!!'.PHP_EOL;
 } else {
-    copy('./vendor/levitarmouse/kiss_orm/ormModels.ini.dist', './ormModels.ini.dist');
+    copy('./vendor/levitarmouse/kiss_orm/ormModels.ini.dist', $modelsInfo);
 }
+
+
 
 if (file_exists($databaseCfg)) {
     echo 'INFO -> ALREADY EXIST ->'.$databaseCfg.PHP_EOL;
     echo ' WILL BE PRESERVED!!!!'.PHP_EOL;
 } else {
-    copy('./vendor/levitarmouse/kiss_orm/config/database.ini.dist', './config/kissorm/database.ini.dist');
+    copy('./vendor/levitarmouse/kiss_orm/config/database.ini.dist', $databaseCfg);
 }
 
 symlink('./vendor/levitarmouse/kiss_orm/ormKissGen.php', './ormKissGen.php');
