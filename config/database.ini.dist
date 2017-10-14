@@ -4,11 +4,11 @@ EngineToUse = MYSQL
 [MYSQL]
 host   = 127.0.0.1
 port   = 3306
-user   = dbuser
-pass   = dbpass
-dbname = dbname
+dbname = kissf_db
+user   = kissf_user
+pass   = kissf_pass
 
-[ORACLE]
+;[ORACLE] aún no disponible
 ;host   = 127.0.0.1
 ;port   = 1521
 ;sid    = 
@@ -16,9 +16,9 @@ dbname = dbname
 ;user   = 
 ;pass   = 
 
-[MONGO]
+;[MONGO] aún no disponible
 ;host   = 127.0.0.1
 ;port   = 27017
-;user   = dbuser
-;pass   = dbpass
-;dbname = admin
+;dbname = 
+;user   = 
+;pass   = 

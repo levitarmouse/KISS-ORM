@@ -18,6 +18,7 @@ if (!is_dir($ormCfgPath)) {
     mkdir($ormCfgPath);
 }
 
+//  files after installation
 $modelsInfo = './tables.ini';
 $databaseCfg = './config/kissorm/database.ini';
 
@@ -33,6 +34,6 @@ if (!file_exists($databaseCfg)) {
     echo 'INFO -> ALREADY EXIST ->'.$databaseCfg.PHP_EOL;
 }
 
-symlink('./vendor/levitarmouse/kiss_orm/kissGen.php', './kissGen.php');
+symlink('./vendor/levitarmouse/kiss_orm/ormKissGen.php', './ormKissGen.php');
 
 symlink($ormCfgPath.'/../../vendor/levitarmouse/kiss_orm/config/Bootstrap.php', 'config/kissorm/Bootstrap.php');

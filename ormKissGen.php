@@ -72,7 +72,7 @@ $tables = array();
             if ($bMkDir) {
 
                 echo EOL;
-                echo "---------------------------------------------";
+                echo "---------------------------------------------". EOL;
                 echo "--- Se creó la carpeta " . $destination . EOL;
                 echo "---------------------------------------------";
                 echo EOL;
@@ -240,7 +240,7 @@ $tables = array();
             $showInfo = true;
 
         } catch (\Exception $ex) {
-            echo "Se produjo un error. "."Revise la configuración de la base de datos en el archivo config/database.ini".EOL;
+            echo "Se produjo un error. "."Revise la configuración de acceso a la base de datos en el archivo config/kissorm/database.ini".EOL;
         }
 
 
@@ -267,7 +267,7 @@ $tables = array();
         }
         else {
             echo "   " . "|=======================================================" . EOL;
-            echo "   " . "|   No se halló configuración para generar descriptores  " . EOL;
+            echo "   " . "|   Se produjo un error. No se crearon los descriptores  " . EOL;
             echo "   " . "|=======================================================" . EOL;
         }
 
