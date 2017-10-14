@@ -135,7 +135,7 @@ $tables = array();
 
                     $psr0Path = implode('/', $aNameSpace);
 
-                    $psr0Destination = $psr0Path;
+                    $psr0Destination .= $psr0Path;
 
                     echo "* Destination Folder ".$destination.PHP_EOL;
                     echo "* Creating PSR0 tree ".$psr0Destination.PHP_EOL;
@@ -362,7 +362,7 @@ CODE;
         $nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
 
         if (!empty($nameSpace)) {
-            $code = str_replace('{{namespace}}', 'namespace '.$nameSpace.';', $code);
+            $code = str_replace('{{namespace}}', 'namespace '.'models\\'.$nameSpace.';', $code);
         } else {
             $code = str_replace('{{namespace}}', '', $code);
         }

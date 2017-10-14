@@ -1,5 +1,5 @@
 [tables]
 ;tableName = {ClassName: "", "NameSpace": "trunk.branch1.branch2.branch3.branch4"}
-kissf_users = {"ClassName": "User","NameSpace": "levitarmouse.models.demo"}
+kissf_users = {"ClassName": "User","NameSpace": "levitarmouse.demo"}
 
 [views]

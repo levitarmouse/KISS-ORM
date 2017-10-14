@@ -1,7 +1,12 @@
 <?php
 
+if (!defined('ROOT_PATH')) {
+    define("ROOT_PATH", realpath(__DIR__."/../../../../")."/");
+}
+$root_path = ROOT_PATH;
+
 if (!defined('KISSORM_ROOT_PATH')) {
-    define("KISSORM_ROOT_PATH", realpath(__DIR__."/../")."/");
+    define("KISSORM_ROOT_PATH", ROOT_PATH.'vendor/levitarmouse/kiss_orm/');
 }
 $root_path = KISSORM_ROOT_PATH;
 
@@ -13,7 +18,7 @@ $garbage = array_pop($aRootProjectPath);
 
 $composerInstalationPath = implode('/', $aRootProjectPath)."/vendor/";
 $configPath              = implode('/', $aRootProjectPath)."/config/kissorm/";
-$descriptorsPath         = implode('/', $aRootProjectPath)."/ormDescriptors/";
+$descriptorsPath         = implode('/', $aRootProjectPath)."/App/models/";
 
 if (!defined('KISSORM_CONFIG_PATH')) {
     define("KISSORM_CONFIG_PATH", $configPath);
