@@ -136,6 +136,20 @@ abstract class ViewModel
         $this->collectionEnd = false;
     }
 
+    public function reConstructLite() {
+        parent::__construct();
+
+        $this->clearCollection();
+
+        $this->aListChange   = array();
+        $this->exists        = false;
+        $this->hasChanges    = false;
+        $this->_isLoading    = false;
+        $this->objectStatus  = self::NO_CREATED;
+
+        $this->collectionEnd = false;
+    }
+
     protected function setUseDescriptor($bolean) {
         $this->useDescriptor = $bolean;
     }
@@ -204,9 +218,6 @@ abstract class ViewModel
             foreach ($aRsValues as $sField => $value) {
                 if (in_array($sField, $aFieldMapping)) {
                     $this->aData[array_search($sField, $aFieldMapping)] = $value;
-                }
-                else {
-                    $this->aData[$sField] = $value;
                 }
             }
 
@@ -371,6 +382,21 @@ abstract class ViewModel
         return $this->aCollection;
     }
 
+    public function getCollectionAsArray($asModels = false)
+    {
+        $array = array();
+
+        while ($obj = $this->getNext()) {
+            if ($asModels) {
+                $array[] = $obj;
+            } else{
+                $array[] = $obj->getAttribs();
+            }
+        }
+
+        return $array;
+    }
+
     public function getCollectionSize()
     {
         return count($this->aCollection);
@@ -528,6 +554,7 @@ abstract class ViewModel
         else {
             // Devuelve todos los campos, es para el caso de un insert
             $aFieldMapping = $this->oMapper->getFieldMapping();
+
             foreach ($aFieldMapping as $sAttrib => $sField) {
                 if (isset($this->aData[$sAttrib]) &&  $this->aData[$sAttrib] !== null) {
                     $aValues[$sAttrib] = $this->aData[$sAttrib];

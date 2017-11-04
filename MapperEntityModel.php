@@ -13,6 +13,7 @@
 namespace levitarmouse\kiss_orm;
 
 use levitarmouse\kiss_orm\dto\GetByFilterDTO;
+use levitarmouse\kiss_orm\dto\FilterDTO;
 use levitarmouse\kiss_orm\dto\GetByIdDTO;
 use levitarmouse\kiss_orm\dto\LimitDTO;
 use levitarmouse\kiss_orm\dto\ModelDTO;
@@ -423,47 +424,47 @@ implements EntityInterface,
                     }
 
                 } else {
-                    $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
-                    $bAND  = strlen(strstr($value, '$AND')) > 1;
-                    $bOR   = strlen(strstr($value, '$OR')) > 1;
-                    $bGT   = strlen(strstr($value, '$GT.')) > 1;
-                    $bGTE  = strlen(strstr($value, '$GTE.')) > 1;
-                    $bLT   = strlen(strstr($value, '$LT.')) > 1;
-                    $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
-                    $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
-                    $bNE   = strlen(strstr($value, '$NE')) > 1;
+                    $bLike = strlen(strstr($value, FilterDTO::LIKE)) > 1;
+                    $bAND  = strlen(strstr($value, FilterDTO::A_ND)) > 1;
+                    $bOR   = strlen(strstr($value, FilterDTO::O_R)) > 1;
+                    $bGT   = strlen(strstr($value, FilterDTO::GT)) > 1;
+                    $bGTE  = strlen(strstr($value, FilterDTO::GTE)) > 1;
+                    $bLT   = strlen(strstr($value, FilterDTO::LT)) > 1;
+                    $bLTE  = strlen(strstr($value, FilterDTO::LTE)) > 1;
+                    $bBTW  = strlen(strstr($value, FilterDTO::BTW)) > 1;
+                    $bNE   = strlen(strstr($value, FilterDTO::NE)) > 1;
 
                     if ($bAND) {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
-                        $value = str_replace('$AND.', '', $value);
+                        $value = str_replace(FilterDTO::A_ND, '', $value);
                     }
                     else if ($bOR) {
                         $sWhere .= " OR $bt{$dbField}$bt = :$dbField";
-                        $value = str_replace('$OR.', '', $value);
+                        $value = str_replace(FilterDTO::O_R, '', $value);
                     }
                     else if ($bNE) {
                         $sWhere .= " AND $bt{$dbField}$bt != :$dbField";
-                        $value = str_replace('$NE.', '', $value);
+                        $value = str_replace(FilterDTO::NE, '', $value);
                     }
                     else if ($bLike) {
-//                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
-//                        $value = str_replace('$GT.', '', $value);
+                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
+                        $value = str_replace(FilterDTO::LIKE, '', $value);
                     }
                     else if ($bGT) {
                         $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
-                        $value = str_replace('$GT.', '', $value);
+                        $value = str_replace(FilterDTO::GT, '', $value);
                     }
                     else if ($bGTE) {
                         $sWhere .= " AND $bt{$dbField}$bt >= :$dbField";
-                        $value = str_replace('$GTE.', '', $value);
+                        $value = str_replace(FilterDTO::GTE, '', $value);
                     }
                     else if ($bLT) {
                         $sWhere .= " AND $bt{$dbField}$bt < :$dbField";
-                        $value = str_replace('$LT.', '', $value);
+                        $value = str_replace(FilterDTO::LT, '', $value);
                     }
                     else if ($bLTE) {
                         $sWhere .= " AND $bt{$dbField}$bt <= :$dbField";
-                        $value = str_replace('$LTE.', '', $value);
+                        $value = str_replace(FilterDTO::LTE, '', $value);
                     }
                     else if ($bBTW) {
                         list($simbol, $btwFrom, $btwTo) = explode('.',$value);

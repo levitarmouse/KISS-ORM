@@ -23,22 +23,23 @@ abstract class FilterDTO extends DTO {
     const GTE  = '$GTE';
     const LT   = '$LT';
     const LTE  = '$LTE';
-    
-    
+    const LIKE = '$LIKE';
+
+
     // TODO
     public function addAnd($key, $value) {
-        
+
     }
-    
+
     // TODO
     public static function addOr($value) {
-        
+
         return self::O_R.$value;
     }
-    
+
     // TODO
     public function addBetween($key, $value) {
-        
+
     }
-    
+
 }
