@@ -18,28 +18,54 @@ abstract class FilterDTO extends DTO {
     const A_ND = '$AND';
     const O_R  = '$OR';
     const BTW  = '$BTW';
+    const BTWE = '$BTWE';
     const NE   = '$NE';
     const GT   = '$GT';
     const GTE  = '$GTE';
     const LT   = '$LT';
     const LTE  = '$LTE';
     const LIKE = '$LIKE';
+    const MIN = '$MIN';
+    const MAX = '$MAX';
+    const CONCAT = '||$CONCAT$||';
+    const SUBFILTER = '||$SUBFILTER$||';
 
 
     // TODO
-    public function addAnd($key, $value) {
+//    public function addAnd($key, $value) {
+//
+//    }
 
+    // TODO
+//    public static function addOr($value) {
+//
+//        return self::O_R.$value;
+//    }
+
+    // TODO
+    public static function Between($min, $max) {
+
+        $values = new \stdClass();
+        $values->min = $min;
+        $values->max = $max;
+
+        $strConcat = json_encode($values);
+
+        $exp = self::getBtwExpression().self::CONCAT.$strConcat;
+
+        return $exp;
     }
 
-    // TODO
-    public static function addOr($value) {
+    public static function getBtwExpression() {
 
-        return self::O_R.$value;
+        $exp = self::BTW.self::MIN.self::A_ND.self::MAX;
+
+        return $exp;
     }
 
-    // TODO
-    public function addBetween($key, $value) {
-
+    public static function addFilter($logic, $value) {
+        $expression = $logic.$value;
+        return FilterDTO::SUBFILTER.$expression;
     }
 
 }

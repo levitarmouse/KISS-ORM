@@ -36,21 +36,12 @@ class Database
                     $aBindings[$key.$index] = $bindValue;
                     $first = false;
                 }
-                
+
                 $sSql = str_replace($toReplace, $bndStr, $sSql);
-                
+
                 unset($aBindings[$key]);
             }
         }
-        
-        
-//        foreach ($aBindings as $key => $value) {
-//            $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
-//            if ($bLike) {
-//                $value = str_replace('{{LIKE}}', '%', $value);
-//            }
-//            $sSql = str_replace(':'.$key, "'".$value."'", $sSql);
-//        }
 
         $aReturn = $this->oDb->select($sSql, $aBindings);
         return $aReturn;

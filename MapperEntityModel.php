@@ -10,6 +10,7 @@
  * @copyright 2012 Levitarmouse
  * @link      Levitarmouse
  */
+
 namespace levitarmouse\kiss_orm;
 
 use levitarmouse\kiss_orm\dto\GetByFilterDTO;
@@ -30,27 +31,22 @@ use levitarmouse\kiss_orm\Mapper as Mapper;
  * @copyright 2012 LM
  * @link      LM
  */
-class MapperEntityModel extends Mapper
-implements EntityInterface,
-           CollectionInterface
-{
-    private $_descriptorPath;
+class MapperEntityModel extends Mapper implements EntityInterface, CollectionInterface {
 
-    protected $schema                        = '';
-    protected $table                         = '';
-    protected $primary_key                   = '';
-    protected $sequence                      = '';
-    protected $aFieldMapping                 = array();
-    protected $aFieldMappingRead             = array();
-    protected $aFieldMappingWrite            = array();
+    private $_descriptorPath;
+    protected $schema = '';
+    protected $table = '';
+    protected $primary_key = '';
+    protected $sequence = '';
+    protected $aFieldMapping = array();
+    protected $aFieldMappingRead = array();
+    protected $aFieldMappingWrite = array();
     protected $aFieldMappingUniqueKeyAttribs = array();
     protected $aFieldMappingPrimaryKeyAttribs = array();
     protected $iCountFileds;
     protected $sEntityDescriptionFileName;
     protected $hasDescriptor = false;
-
     protected $dbEngineVendor = '';
-
     public static $backTick;
 
     /**
@@ -60,14 +56,11 @@ implements EntityInterface,
      *
      * @return none
      */
-    public function __construct(ModelDTO $dto, $dbEngineVendor = '')
-    {
+    public function __construct(ModelDTO $dto, $dbEngineVendor = '') {
         if ($dbEngineVendor && !empty($dbEngineVendor)) {
             $this->dbEngineVendor = $dbEngineVendor;
         } else {
-            if (defined('ORM_DB_ENGINE')
-                && !empty(ORM_DB_ENGINE)
-                && in_array(strtoupper(ORM_DB_ENGINE), array('MYSQL', 'ORACLE')) ) {
+            if (defined('ORM_DB_ENGINE') && !empty(ORM_DB_ENGINE) && in_array(strtoupper(ORM_DB_ENGINE), array('MYSQL', 'ORACLE'))) {
                 $this->dbEngineVendor = strtoupper(ORM_DB_ENGINE);
             } else {
                 $this->dbEngineVendor = 'MYSQL';
@@ -75,8 +68,8 @@ implements EntityInterface,
             }
         }
 
-        $oDB         = ($dto->oDB) ? $dto->oDB : null;
-        $oLogger     = ($dto->oLogger) ? $dto->oLogger : null;
+        $oDB = ($dto->oDB) ? $dto->oDB : null;
+        $oLogger = ($dto->oLogger) ? $dto->oLogger : null;
         $sConfigFile = ($dto->sFileDescriptorModel) ? $dto->sFileDescriptorModel : '';
 
         parent::__construct($oDB, $oLogger);
@@ -99,14 +92,12 @@ implements EntityInterface,
         }
     }
 
-    public function getDBEngineVendor()
-    {
+    public function getDBEngineVendor() {
         return $this->dbEngineVendor;
     }
 
-    private function _loadConfig($sDescriptor)
-    {
-        if (!($aConfig  = parse_ini_file($sDescriptor, true))) {
+    private function _loadConfig($sDescriptor) {
+        if (!($aConfig = parse_ini_file($sDescriptor, true))) {
             $aConfig = array();
         }
 
@@ -145,64 +136,58 @@ implements EntityInterface,
         }
         $this->hasDescriptor = true;
     }
+
     /**
      * Checks if the object has a descriptor associated.
      *
      * @return boolean
      */
-    public function hasDescriptor()
-    {
+    public function hasDescriptor() {
         return $this->hasDescriptor;
     }
 
-    protected function setFileDescriptorByConvention($className)
-    {
-        $parts      = explode('\\', $className);
+    protected function setFileDescriptorByConvention($className) {
+        $parts = explode('\\', $className);
         $importPart = array_pop($parts);
 
-        $descriptionFileName              = str_replace('Model', '', $importPart);
-        $descriptionFileName              = $descriptionFileName . '.ini';
+        $descriptionFileName = str_replace('Model', '', $importPart);
+        $descriptionFileName = $descriptionFileName . '.ini';
         $this->sEntityDescriptionFileName = $descriptionFileName;
     }
 
-    public function getSchema()
-    {
+    public function getSchema() {
         return (isset($this->schema)) ? $this->schema : '';
     }
 
-    public function getTableName()
-    {
+    public function getTableName() {
         return (isset($this->table)) ? $this->table : '';
     }
 
-    public function getSequenceName()
-    {
+    public function getSequenceName() {
         return (isset($this->sequence)) ? $this->sequence : '';
     }
 
-    public function getFieldMappingPrimaryKey()
-    {
+    public function getFieldMappingPrimaryKey() {
         return (isset($this->aFieldMappingPrimaryKeyAttribs)) ? $this->aFieldMappingPrimaryKeyAttribs : array();
     }
-    public function getPrimaryKey()
-    {
+
+    public function getPrimaryKey() {
         $primaryKey = array_keys($this->getFieldMappingPrimaryKey());
         $primaryKey = $this->getFieldMappingPrimaryKey();
         return $primaryKey;
     }
 
-    public function getFieldMappingUniqueKey()
-    {
+    public function getFieldMappingUniqueKey() {
         return (isset($this->aFieldMappingUniqueKeyAttribs)) ? $this->aFieldMappingUniqueKeyAttribs : array();
     }
+
     public function getUniqueKey() {
 
         $uniqueKey = array_keys($this->getFieldMappingUniqueKey());
         return $uniqueKey;
     }
 
-    public function getAttribByFieldName($fieldName)
-    {
+    public function getAttribByFieldName($fieldName) {
         $aFieldMapping = array_flip($this->aFieldMapping);
         $return = new EntityAttribDTO();
         $return->attribName = $aFieldMapping[$fieldName];
@@ -210,12 +195,11 @@ implements EntityInterface,
         return $return;
     }
 
-    public function getNextId()
-    {
+    public function getNextId() {
         return $this->getSeqNextVal($this->sequence);
     }
 
-    /* ***************************
+    /*     * **************************
      * EntityInterface methods START
      * *************************** */
 
@@ -226,12 +210,11 @@ implements EntityInterface,
      *
      * @return type
      */
-    public function getById($id)
-    {
+    public function getById($id) {
         $bt = self::$backTick;
 
-        $sSchema      = $this->schema;
-        $sMainTable   = $this->table;
+        $sSchema = $this->schema;
+        $sMainTable = $this->table;
         $sIdFieldName = $this->primary_key;
 
         if ($sMainTable != '' && $sIdFieldName != '') {
@@ -251,19 +234,19 @@ implements EntityInterface,
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
-                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
+                        $sTemp = ' ' . $bt . $this->aFieldMappingRead[$dbField] . $bt . ' ';
                     }
                 }
-                $sSql .= ", ".$bt.$sTemp.$bt." ";
+                $sSql .= ", " . $bt . $sTemp . $bt . " ";
             }
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
             switch ($this->dbEngineVendor) {
                 case 'MYSQL':
-                    $sFrom  = " FROM (SELECT @rownum:=0) r, {$tableName} ";
+                    $sFrom = " FROM (SELECT @rownum:=0) r, {$tableName} ";
                     break;
                 case 'ORACLE':
-                    $sFrom  = " FROM {$tableName} ";
+                    $sFrom = " FROM {$tableName} ";
                     break;
             }
 
@@ -294,9 +277,8 @@ implements EntityInterface,
      *
      * @return type
      */
-    public function getAll()
-    {
-        $sSql = "select * from ".$this->getSchema().".".$this->getTableName();
+    public function getAll() {
+        $sSql = "select * from " . $this->getSchema() . "." . $this->getTableName();
 
         $aBnd = array();
 
@@ -305,17 +287,15 @@ implements EntityInterface,
         return $result;
     }
 
-    public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
-    {
+    public function getByFilter(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null) {
         $bt = self::$backTick;
 
-        $sSchema      = $this->schema;
-        $sMainTable   = $this->table;
+        $sSchema = $this->schema;
+        $sMainTable = $this->table;
 
         $filter = null;
         if ($filterDTO) {
             $filter = $filterDTO->getFilter();
-
         }
 
         $order = null;
@@ -371,13 +351,13 @@ implements EntityInterface,
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
-                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
+                        $sTemp = ' ' . $bt . $this->aFieldMappingRead[$dbField] . $bt . ' ';
                     }
                 }
 
                 $comma = ($first) ? ' ' : ', ';
 
-                $queryFields .= $comma. $bt.$sTemp.$bt;
+                $queryFields .= $comma . $bt . $sTemp . $bt;
 
                 if (isset($filterDTO->$classAttrib)) {
                     $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
@@ -395,96 +375,15 @@ implements EntityInterface,
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
 
 
-            $sSql  .= " FROM $tableName ";
+            $sSql .= " FROM $tableName ";
 
             $sWhere = 'WHERE 1 = 1';
 
-            foreach($aaFieldCompares as $dbField => $value) {
-                if (is_array($value)) {
+            foreach ($aaFieldCompares as $dbField => $value) {
+                $fieldTest = $this->getFieldFilter($dbField, $value);
 
-                    $size = count($value);
-
-                    if ($size == 0) {
-                        $sWhere .= " AND $bt{$dbField}$bt IS NULL";
-                    }
-                    else {
-                        $bindNames = ''; $i = 1;
-                        foreach ($value as $bindKey => $bindValue) {
-                            $name = $dbField."_".$i;
-                            $comma = ($i < $size) ? ', ' : ' ';
-
-                            $bindNames .= ":".$name.$comma;
-
-                            $aBnd[$name] = $bindValue;
-
-                            $i++;
-                        }
-
-                        $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
-                    }
-
-                } else {
-                    $bLike = strlen(strstr($value, FilterDTO::LIKE)) > 1;
-                    $bAND  = strlen(strstr($value, FilterDTO::A_ND)) > 1;
-                    $bOR   = strlen(strstr($value, FilterDTO::O_R)) > 1;
-                    $bGT   = strlen(strstr($value, FilterDTO::GT)) > 1;
-                    $bGTE  = strlen(strstr($value, FilterDTO::GTE)) > 1;
-                    $bLT   = strlen(strstr($value, FilterDTO::LT)) > 1;
-                    $bLTE  = strlen(strstr($value, FilterDTO::LTE)) > 1;
-                    $bBTW  = strlen(strstr($value, FilterDTO::BTW)) > 1;
-                    $bNE   = strlen(strstr($value, FilterDTO::NE)) > 1;
-
-                    if ($bAND) {
-                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
-                        $value = str_replace(FilterDTO::A_ND, '', $value);
-                    }
-                    else if ($bOR) {
-                        $sWhere .= " OR $bt{$dbField}$bt = :$dbField";
-                        $value = str_replace(FilterDTO::O_R, '', $value);
-                    }
-                    else if ($bNE) {
-                        $sWhere .= " AND $bt{$dbField}$bt != :$dbField";
-                        $value = str_replace(FilterDTO::NE, '', $value);
-                    }
-                    else if ($bLike) {
-                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
-                        $value = str_replace(FilterDTO::LIKE, '', $value);
-                    }
-                    else if ($bGT) {
-                        $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
-                        $value = str_replace(FilterDTO::GT, '', $value);
-                    }
-                    else if ($bGTE) {
-                        $sWhere .= " AND $bt{$dbField}$bt >= :$dbField";
-                        $value = str_replace(FilterDTO::GTE, '', $value);
-                    }
-                    else if ($bLT) {
-                        $sWhere .= " AND $bt{$dbField}$bt < :$dbField";
-                        $value = str_replace(FilterDTO::LT, '', $value);
-                    }
-                    else if ($bLTE) {
-                        $sWhere .= " AND $bt{$dbField}$bt <= :$dbField";
-                        $value = str_replace(FilterDTO::LTE, '', $value);
-                    }
-                    else if ($bBTW) {
-                        list($simbol, $btwFrom, $btwTo) = explode('.',$value);
-
-                        $dateH = date_create($btwFrom);
-                        date_sub($dateH, date_interval_create_from_date_string('1 day'));
-                        $btwFrom = date_format($dateH, 'Y-m-d');
-
-                        $dateH = date_create($btwTo);
-                        date_add($dateH, date_interval_create_from_date_string('1 day'));
-                        $btwTo = date_format($dateH, 'Y-m-d');
-
-                        $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
-                        $value = str_replace($simbol, '', $value);
-                    }
-                    else {
-                        $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
-                    }
-                    $aBnd[$dbField] = $value;
-                }
+                $sWhere .= $fieldTest['where'];
+                $aBnd = array_merge($fieldTest['binding'], $aBnd);
             }
 
             $sSql .= $sWhere;
@@ -499,7 +398,7 @@ implements EntityInterface,
 
                         $comma = ($bFirst) ? ' ' : ', ';
 
-                        $orderStr .= $comma.$bt.$field.$bt." ".$direction;
+                        $orderStr .= $comma . $bt . $field . $bt . " " . $direction;
 
                         $bFirst = false;
                     }
@@ -512,7 +411,7 @@ implements EntityInterface,
 
             if ($limitRows) {
 
-                $sSql = "select TableOrView.* from (".$sSql;
+                $sSql = "select TableOrView.* from (" . $sSql;
 
                 $sSql .= ") TableOrView";
 
@@ -520,11 +419,10 @@ implements EntityInterface,
                     $pageNumber = $limitRows->pageNumber;
                     $pageSize = $limitRows->pageSize;
                     $from = ($pageSize * ($pageNumber - 1));
-                    $to   = (($pageSize * $pageNumber) ) -1;
-
+                    $to = (($pageSize * $pageNumber) ) - 1;
                 } else {
-                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
-                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;
+                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow : 0;
+                    $to = (isset($limitRows->lastRow) && is_numeric($limitRows->lastRow)) ? $limitRows->lastRow - 1 : 10;
                 }
 
 
@@ -555,12 +453,169 @@ implements EntityInterface,
         return array();
     }
 
-    protected function getByFilterLimited(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null)
-    {
+    protected function getFieldFilter($dbField, $value, $subFilter = 0) {
         $bt = self::$backTick;
 
-        $sSchema      = $this->schema;
-        $sMainTable   = $this->table;
+        $aBnd = array();
+
+        $sWhere = '';
+
+        $dbFieldBnd = ($subFilter === 0) ? $dbField : $dbField.'_'.$subFilter;
+
+        if (is_array($value)) {
+
+            $size = count($value);
+
+            if ($size == 0) {
+                $sWhere .= " AND $bt{$dbField}$bt IS NULL";
+            } else {
+                $bindNames = '';
+                $i = 1;
+                foreach ($value as $bindKey => $bindValue) {
+                    $name = $dbField . "_" . $i;
+                    $comma = ($i < $size) ? ', ' : ' ';
+
+                    $bindNames .= ":" . $name . $comma;
+
+                    $aBnd[$name] = $bindValue;
+
+                    $i++;
+                }
+
+                $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
+            }
+        } else {
+            $fieldFilters = explode(FilterDTO::SUBFILTER, $value);
+            $value = isset($fieldFilters[0]) ? $fieldFilters[0] : null;
+
+            if (!$value) {
+                $value = (isset($fieldFilters[1])) ? $fieldFilters[1] : null;
+            }
+//            $filter1 = isset($fieldFilters[1]) ? $fieldFilters[1] : null;
+//            $filter2 = isset($fieldFilters[2]) ? $fieldFilters[2] : null;
+//            $filter3 = isset($fieldFilters[3]) ? $fieldFilters[3] : null;
+//            $filter4 = isset($fieldFilters[4]) ? $fieldFilters[4] : null;
+//            $filter5 = isset($fieldFilters[5]) ? $fieldFilters[5] : null;
+//            $filter6 = isset($fieldFilters[6]) ? $fieldFilters[6] : null;
+
+            $bBtw = strlen(strstr($value, FilterDTO::BTW)) > 1;
+
+            if ($bBtw) {
+
+                list($exp, $jsonValues) = explode(FilterDTO::CONCAT, $value);
+
+                $values = json_decode($jsonValues);
+                $min = $values->min;
+                $max = $values->max;
+
+                $toReplace = FilterDTO::getBtwExpression();
+
+                $btwExpression = ' between :min AND :max';
+
+                $exp = str_replace($toReplace, $btwExpression, $exp);
+//                        $exp = str_replace(FilterDTO::MIN, ':min', $exp);
+//                        $exp = str_replace(FilterDTO::A_ND, ' AND ', $exp);
+//                        $exp = str_replace(FilterDTO::MAX, ':max', $exp);
+
+                $sWhere .= ' AND ' . $bt . $dbField . $bt . $exp;
+//                $value = '';
+
+//                        continue;
+            } else {
+
+                $bAND = strlen(strstr($value, FilterDTO::A_ND)) > 1;
+                $bOR = strlen(strstr($value, FilterDTO::O_R)) > 1;
+
+                $bGTE = strlen(strstr($value, FilterDTO::GTE)) > 1;
+                $value = ($bGTE) ? str_replace(FilterDTO::GTE, '', $value) : $value;
+                $bGT = strlen(strstr($value, FilterDTO::GT)) > 1;
+
+                $bLTE = strlen(strstr($value, FilterDTO::LTE)) > 1;
+                $value = ($bLTE) ? str_replace(FilterDTO::LTE, '', $value) : $value;
+                $bLT = strlen(strstr($value, FilterDTO::LT)) > 1;
+
+                $bLike = strlen(strstr($value, FilterDTO::LIKE)) > 1;
+                $bNE = strlen(strstr($value, FilterDTO::NE)) > 1;
+
+
+                if ($bAND) {
+                    $sWhere .= " AND $bt{$dbField}$bt = :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::A_ND, '', $value);
+                } else if ($bOR) {
+                    $sWhere .= " OR $bt{$dbField}$bt = :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::O_R, '', $value);
+                } else if ($bGTE) {
+                    $sWhere .= " AND $bt{$dbField}$bt >= :$dbFieldBnd";
+                    //                        $value = str_replace(FilterDTO::GTE, '', $value);
+                } else if ($bGT) {
+                    $sWhere .= " AND $bt{$dbField}$bt > :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::GT, '', $value);
+                } else if ($bLTE) {
+                    $sWhere .= " AND $bt{$dbField}$bt <= :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::LTE, '', $value);
+                } else if ($bLT) {
+                    $sWhere .= " AND $bt{$dbField}$bt < :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::LT, '', $value);
+                } else if ($bNE) {
+                    $sWhere .= " AND $bt{$dbField}$bt != :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::NE, '', $value);
+                } else if ($bLike) {
+                    $sWhere .= " AND $bt{$dbField}$bt like :$dbFieldBnd";
+                    $value = str_replace(FilterDTO::LIKE, '', $value);
+                }
+                /*
+                  else if ($bBTW) {
+                  list($simbol, $btwFrom, $btwTo) = explode('.',$value);
+
+                  $dateH = date_create($btwFrom);
+                  date_sub($dateH, date_interval_create_from_date_string('1 day'));
+                  $btwFrom = date_format($dateH, 'Y-m-d');
+
+                  $dateH = date_create($btwTo);
+                  date_add($dateH, date_interval_create_from_date_string('1 day'));
+                  $btwTo = date_format($dateH, 'Y-m-d');
+
+                  $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
+                  $value = str_replace($simbol, '', $value);
+                  }
+                 */ else {
+                    $sWhere .= " AND $bt{$dbField}$bt = :$dbFieldBnd";
+                }
+            }
+
+            if ($bBtw) {
+                $aBnd['min'] = $min;
+                $aBnd['max'] = $max;
+            } else {
+                $aBnd[$dbFieldBnd] = $value;
+            }
+
+            $nFilters = count($fieldFilters);
+            if ($nFilters > 1){
+
+                $n = (isset($fieldFilters[0]) && !empty($fieldFilters[0])) ? 1 : 2;
+                for ($i = $n; $i< $nFilters; $i++) {
+                    $nFilter = $fieldFilters[$i];
+                    $subFilter = $nFilter;
+                    $subResult  = $this->getFieldFilter($dbField, $subFilter, $i);
+                    $sWhere .= $subResult['where'];
+                    $aBnd = array_merge($aBnd, $subResult['binding']);
+
+                }
+
+            }
+        }
+
+        $filter = array('where' => $sWhere, 'binding' => $aBnd);
+
+        return $filter;
+    }
+
+    protected function getByFilterLimited(GetByFilterDTO $filterDTO, OrderByDTO $orderDto = null, LimitDTO $limitDto = null) {
+        $bt = self::$backTick;
+
+        $sSchema = $this->schema;
+        $sMainTable = $this->table;
 
         $filter = null;
         if ($filterDTO) {
@@ -610,13 +665,13 @@ implements EntityInterface,
 
                 if (isset($this->aFieldMappingRead)) {
                     if (array_key_exists($dbField, $this->aFieldMappingRead)) {
-                        $sTemp = ' ' . $bt.$this->aFieldMappingRead[$dbField].$bt . ' ';
+                        $sTemp = ' ' . $bt . $this->aFieldMappingRead[$dbField] . $bt . ' ';
                     }
                 }
 
                 $comma = ($first) ? ' ' : ', ';
 
-                $queryFields .= $comma. $bt.$sTemp.$bt;
+                $queryFields .= $comma . $bt . $sTemp . $bt;
 
                 if (isset($filterDTO->$classAttrib)) {
                     $aaFieldCompares[$dbField] = $filterDTO->$classAttrib;
@@ -632,25 +687,25 @@ implements EntityInterface,
             $sSql = str_replace('{{TableOrView.fields}}', $queryFields, $sSql);
 
             $tableName = ($sSchema) ? $sSchema . '.' . $sMainTable : $sMainTable;
-            $sSql  .= " FROM $tableName ";
+            $sSql .= " FROM $tableName ";
 
             $sWhere = 'WHERE 1 = 1';
 
-            foreach($aaFieldCompares as $dbField => $value) {
+            foreach ($aaFieldCompares as $dbField => $value) {
                 if (is_array($value)) {
 
                     $size = count($value);
 
                     if ($size == 0) {
                         $sWhere .= " AND $bt{$dbField}$bt IS NULL";
-                    }
-                    else {
-                        $bindNames = ''; $i = 1;
+                    } else {
+                        $bindNames = '';
+                        $i = 1;
                         foreach ($value as $bindKey => $bindValue) {
-                            $name = $dbField."_".$i;
+                            $name = $dbField . "_" . $i;
                             $comma = ($i < $size) ? ', ' : ' ';
 
-                            $bindNames .= ":".$name.$comma;
+                            $bindNames .= ":" . $name . $comma;
 
                             $aBnd[$name] = $bindValue;
 
@@ -659,52 +714,43 @@ implements EntityInterface,
 
                         $sWhere .= " AND $bt{$dbField}$bt IN ($bindNames)";
                     }
-
                 } else {
                     $bLike = strlen(strstr($value, '{{LIKE}}')) > 1;
-                    $bAND  = strlen(strstr($value, '$AND')) > 1;
-                    $bOR   = strlen(strstr($value, '$OR')) > 1;
-                    $bGT   = strlen(strstr($value, '$GT.')) > 1;
-                    $bGTE  = strlen(strstr($value, '$GTE.')) > 1;
-                    $bLT   = strlen(strstr($value, '$LT.')) > 1;
-                    $bLTE  = strlen(strstr($value, '$LTE.')) > 1;
-                    $bBTW  = strlen(strstr($value, '$BTW.')) > 1;
-                    $bNE   = strlen(strstr($value, '$NE')) > 1;
+                    $bAND = strlen(strstr($value, '$AND')) > 1;
+                    $bOR = strlen(strstr($value, '$OR')) > 1;
+                    $bGT = strlen(strstr($value, '$GT.')) > 1;
+                    $bGTE = strlen(strstr($value, '$GTE.')) > 1;
+                    $bLT = strlen(strstr($value, '$LT.')) > 1;
+                    $bLTE = strlen(strstr($value, '$LTE.')) > 1;
+                    $bBTW = strlen(strstr($value, '$BTW.')) > 1;
+                    $bNE = strlen(strstr($value, '$NE')) > 1;
 
                     if ($bAND) {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                         $value = str_replace('$AND.', '', $value);
-                    }
-                    else if ($bOR) {
+                    } else if ($bOR) {
                         $sWhere .= " OR $bt{$dbField}$bt = :$dbField";
                         $value = str_replace('$OR.', '', $value);
-                    }
-                    else if ($bNE) {
+                    } else if ($bNE) {
                         $sWhere .= " AND $bt{$dbField}$bt != :$dbField";
                         $value = str_replace('$NE.', '', $value);
-                    }
-                    else if ($bLike) {
+                    } else if ($bLike) {
 //                        $sWhere .= " AND $bt{$dbField}$bt like :$dbField";
 //                        $value = str_replace('$GT.', '', $value);
-                    }
-                    else if ($bGT) {
+                    } else if ($bGT) {
                         $sWhere .= " AND $bt{$dbField}$bt > :$dbField";
                         $value = str_replace('$GT.', '', $value);
-                    }
-                    else if ($bGTE) {
+                    } else if ($bGTE) {
                         $sWhere .= " AND $bt{$dbField}$bt >= :$dbField";
                         $value = str_replace('$GTE.', '', $value);
-                    }
-                    else if ($bLT) {
+                    } else if ($bLT) {
                         $sWhere .= " AND $bt{$dbField}$bt < :$dbField";
                         $value = str_replace('$LT.', '', $value);
-                    }
-                    else if ($bLTE) {
+                    } else if ($bLTE) {
                         $sWhere .= " AND $bt{$dbField}$bt <= :$dbField";
                         $value = str_replace('$LTE.', '', $value);
-                    }
-                    else if ($bBTW) {
-                        list($simbol, $btwFrom, $btwTo) = explode('.',$value);
+                    } else if ($bBTW) {
+                        list($simbol, $btwFrom, $btwTo) = explode('.', $value);
 
                         $dateH = date_create($btwFrom);
                         date_sub($dateH, date_interval_create_from_date_string('1 day'));
@@ -714,10 +760,9 @@ implements EntityInterface,
                         date_add($dateH, date_interval_create_from_date_string('1 day'));
                         $btwTo = date_format($dateH, 'Y-m-d');
 
-                        $sWhere .= " AND ($bt{$dbField}$bt between '".$btwFrom."' AND '".$btwTo."')";
+                        $sWhere .= " AND ($bt{$dbField}$bt between '" . $btwFrom . "' AND '" . $btwTo . "')";
                         $value = str_replace($simbol, '', $value);
-                    }
-                    else {
+                    } else {
                         $sWhere .= " AND $bt{$dbField}$bt = :$dbField";
                     }
                     $aBnd[$dbField] = $value;
@@ -736,7 +781,7 @@ implements EntityInterface,
 
                         $comma = ($bFirst) ? ' ' : ', ';
 
-                        $orderStr .= $comma.$bt.$field.$bt." ".$direction;
+                        $orderStr .= $comma . $bt . $field . $bt . " " . $direction;
 
                         $bFirst = false;
                     }
@@ -751,7 +796,7 @@ implements EntityInterface,
 
                 $sSql .= ") TableOrView ) limited";
 
-                $sSqlSize = "select count(unlimitedResult.rownum) as SIZE from (".$sSql.") unlimitedResult";
+                $sSqlSize = "select count(unlimitedResult.rownum) as SIZE from (" . $sSql . ") unlimitedResult";
 
                 $unlimitedSizeRS = $this->select($sSqlSize, $aBnd);
                 $unlimitedSize = $unlimitedSizeRS[0]['SIZE'];
@@ -760,12 +805,11 @@ implements EntityInterface,
                     $pageNumber = $limitRows->pageNumber;
                     $pageSize = $limitRows->pageSize;
 
-                    $from = ($pageNumber-1)*$pageSize+1;
+                    $from = ($pageNumber - 1) * $pageSize + 1;
                     $to = $pageSize * $pageNumber;
-
                 } else {
-                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow  : 0;
-                    $to   = (isset($limitRows->lastRow)  && is_numeric($limitRows->lastRow))  ? $limitRows->lastRow-1 : 10;
+                    $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow : 0;
+                    $to = (isset($limitRows->lastRow) && is_numeric($limitRows->lastRow)) ? $limitRows->lastRow - 1 : 10;
                 }
 
                 $lastPage = false;
@@ -802,7 +846,7 @@ implements EntityInterface,
 
             if (is_array($aResult)) {
 
-                $aResult['lastPage']      = $lastPage;
+                $aResult['lastPage'] = $lastPage;
                 $aResult['unlimitedSize'] = $unlimitedSize;
 
                 return $aResult;
@@ -813,29 +857,28 @@ implements EntityInterface,
         return array();
     }
 
-
-    /* ***************************
+    /*     * **************************
      * CollectionInterface methods END
      * *************************** */
-    public function create($aValues)
-    {
+
+    public function create($aValues) {
         $bt = self::$backTick;
 
         $sLogValues = '';
         $sMainTable = $this->getTableName();
-        $sSchema    = $this->getSchema();
+        $sSchema = $this->getSchema();
 
-        $iResult    = false;
+        $iResult = false;
         if ($sMainTable != '') {
-            $aBnd    = array();
+            $aBnd = array();
             $iValues = count($aValues);
-            $bFirst  = true;
+            $bFirst = true;
 
             $sFields = $sValues = '';
 
             foreach ($aValues as $field => $value) {
                 $bValueIsAConstant = $this->_isAConstant($value);
-                $valueExpresion    = null;
+                $valueExpresion = null;
                 if (is_array($this->aFieldMappingWrite)) {
                     if (isset($this->aFieldMappingWrite[$field]) && !$bValueIsAConstant) {
                         $valueExpresion = $this->aFieldMappingWrite[$field];
@@ -844,17 +887,15 @@ implements EntityInterface,
 
                 $value = $this->_replaceConstant($value);
 
-                $sFields .= (!$bFirst) ? ', ' . $bt.$field.$bt : $bt.$field.$bt. '';
+                $sFields .= (!$bFirst) ? ', ' . $bt . $field . $bt : $bt . $field . $bt . '';
 
                 if ($valueExpresion !== null) {
                     $sValues .= (!$bFirst) ? ', ' . $valueExpresion : $valueExpresion;
                     $aBnd[$field] = $value;
-                }
-                else {
+                } else {
                     if ($bValueIsAConstant) {
                         $sValues .= (!$bFirst) ? ', ' . $value : $value;
-                    }
-                    else {
+                    } else {
                         $sValues .= (!$bFirst) ? ', :' . $field : ':' . $field;
                         $aBnd[$field] = $value;
                     }
@@ -874,16 +915,12 @@ implements EntityInterface,
                VALUES ({$sValues})";
 
             $iResult = $this->insert($sSql, $aBnd, $sSchemaTable);
-
         }
         return $iResult;
     }
 
-    private function _replaceConstant($value)
-    {
-        if ( $value === Mapper::SYSDATE_STRING
-             || $value === Mapper::SQL_SYSDATE_STRING
-             || $value === ViewModel::DB_DATE_TIME) {
+    private function _replaceConstant($value) {
+        if ($value === Mapper::SYSDATE_STRING || $value === Mapper::SQL_SYSDATE_STRING || $value === ViewModel::DB_DATE_TIME) {
             switch ($this->dbEngineVendor) {
                 case 'MYSQL':
                     $value = "NOW()";
@@ -925,28 +962,26 @@ implements EntityInterface,
         return $result;
     }
 
-    private function _isAConstant($value)
-    {
+    private function _isAConstant($value) {
         if (in_array($value, array(
-            Mapper::SYSDATE_STRING,
-            Mapper::SQL_SYSDATE_STRING,
-            Mapper::DB_DATE_TIME,
-            Mapper::EMPTY_STRING,
-            Mapper::SQL_EMPTY_STRING,
-            Mapper::NULL_STRING,
-            Mapper::ANY_STRING,
-            Mapper::DISABLED,
-            Mapper::ENABLED) ) ) {
+                    Mapper::SYSDATE_STRING,
+                    Mapper::SQL_SYSDATE_STRING,
+                    Mapper::DB_DATE_TIME,
+                    Mapper::EMPTY_STRING,
+                    Mapper::SQL_EMPTY_STRING,
+                    Mapper::NULL_STRING,
+                    Mapper::ANY_STRING,
+                    Mapper::DISABLED,
+                    Mapper::ENABLED))) {
             return true;
         }
         return false;
     }
 
-    public function modify($aValues, $aWhere)
-    {
+    public function modify($aValues, $aWhere) {
         $bt = self::$backTick;
 
-        $sLogValues = $sLogWhere  = $sSetters = '';
+        $sLogValues = $sLogWhere = $sSetters = '';
         $sMainTable = $this->getTableName();
         if (count($aWhere) > 0 && count($aValues) > 0 && $sMainTable != '') {
 
@@ -955,7 +990,7 @@ implements EntityInterface,
 
                 $aBnd[$field] = $value;
 
-                $setExpresion  = $originalValue = null;
+                $setExpresion = $originalValue = null;
                 if ($value !== null) {
                     if (is_array($this->aFieldMappingWrite)) {
                         if (isset($this->aFieldMappingWrite[$field])) {
@@ -974,30 +1009,24 @@ implements EntityInterface,
                             break;
                     }
                     unset($aBnd[$field]);
-                }
-                elseif ($value === Mapper::ENABLED) {
+                } elseif ($value === Mapper::ENABLED) {
                     $value = "0";
                     unset($aBnd[$field]);
-                }
-                elseif ($value === Mapper::DISABLED) {
+                } elseif ($value === Mapper::DISABLED) {
                     $value = "1";
                     unset($aBnd[$field]);
-                }
-                elseif ($value === Mapper::EMPTY_STRING || $value === Mapper::SQL_EMPTY_STRING) {
+                } elseif ($value === Mapper::EMPTY_STRING || $value === Mapper::SQL_EMPTY_STRING) {
                     $value = "''";
                     unset($aBnd[$field]);
-                }
-                elseif ($value === Mapper::NULL_STRING || $value === Mapper::SQL_NULL_STRING || $value === null) {
+                } elseif ($value === Mapper::NULL_STRING || $value === Mapper::SQL_NULL_STRING || $value === null) {
                     $value = 'null';
                     unset($aBnd[$field]);
-                }
-                elseif ($value === '') {
+                } elseif ($value === '') {
                     $value = "''";
                     unset($aBnd[$field]);
-                }
-                else {
+                } else {
                     $originalValue = $value;
-                    $value         = ":{$field}";
+                    $value = ":{$field}";
                 }
 
                 if ($setExpresion === null) {
@@ -1022,8 +1051,7 @@ implements EntityInterface,
                     // Logging
                     $sLogWhere .= $field . '->[' . $value . '] ';
                 }
-            }
-            else {
+            } else {
                 return false;
             }
 
@@ -1042,11 +1070,10 @@ implements EntityInterface,
         return false;
     }
 
-    public function remove($aWhere)
-    {
+    public function remove($aWhere) {
         $bt = self::$backTick;
 
-        $sLogWhere  = '';
+        $sLogWhere = '';
         $sMainTable = $this->getTableName();
         if (is_array($aWhere) && count($aWhere) > 0 && $sMainTable != '') {
 
@@ -1075,21 +1102,18 @@ implements EntityInterface,
         return false;
     }
 
-    public function isBeingUsed($sField, $sValue, $iExcludeId = '')
-    {
+    public function isBeingUsed($sField, $sValue, $iExcludeId = '') {
         if ($iExcludeId) {
             return $this->valueAlreadyExists($this->sMainTable, $sField, $sValue, $this->sInternalIdFieldName, $iExcludeId);
-        }
-        else {
+        } else {
             return $this->valueAlreadyExists($this->sMainTable, $sField, $sValue, $this->sInternalIdFieldName);
         }
     }
 
-    public function valueAlreadyExists($sTableName, $sFieldName, $sValue, $sExcludeField = '', $iExcludeId = '')
-    {
+    public function valueAlreadyExists($sTableName, $sFieldName, $sValue, $sExcludeField = '', $iExcludeId = '') {
         $bResult = false;
 
-        $sSql     = <<<EOQ
+        $sSql = <<<EOQ
             SELECT count(*) as Q
               FROM {$sTableName}
              WHERE {$sFieldName} = :value
@@ -1118,17 +1142,16 @@ EOQ;
      *
      * @return type
      */
-    public function blockById($sFieldBlock, $iId)
-    {
+    public function blockById($sFieldBlock, $iId) {
         $bBlockedField = false;
-        $sMainTable    = $this->getDbTableName();
-        $sIdFieldName  = $this->getDbFieldInternalId();
+        $sMainTable = $this->getDbTableName();
+        $sIdFieldName = $this->getDbFieldInternalId();
 
         if ($sMainTable != '' && $sIdFieldName != '') {
 
-            $sSql       = "SELECT " . $sFieldBlock . " ";
-            $sFrom      = " FROM {$sMainTable} ";
-            $sWhere     = " WHERE {$sIdFieldName} = :ID ";
+            $sSql = "SELECT " . $sFieldBlock . " ";
+            $sFrom = " FROM {$sMainTable} ";
+            $sWhere = " WHERE {$sIdFieldName} = :ID ";
             $sForUpdate = " FOR UPDATE WAIT 30 ";
 
             $aBnd = array('ID' => $iId);
