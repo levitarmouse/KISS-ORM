@@ -809,7 +809,7 @@ class MapperEntityModel extends Mapper implements EntityInterface, CollectionInt
                     $to = $pageSize * $pageNumber;
                 } else {
                     $from = (isset($limitRows->firstRow) && is_numeric($limitRows->firstRow)) ? $limitRows->firstRow : 0;
-                    $to = (isset($limitRows->lastRow) && is_numeric($limitRows->lastRow)) ? $limitRows->lastRow - 1 : 10;
+                    $to = (isset($limitRows->lastRow) && is_numeric($limitRows->lastRow)) ? $limitRows->lastRow : 10;
                 }
 
                 $lastPage = false;

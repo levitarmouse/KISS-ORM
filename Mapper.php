@@ -11,6 +11,8 @@
  */
 namespace levitarmouse\kiss_orm;
 
+use levitarmouse\common_tools\logs\Logger;
+
 use \Exception;
 
 /**
@@ -20,6 +22,8 @@ use \Exception;
  * @author    Gabriel Prieto <gab307@gmail.com>
  * @copyright 2012 LM
  * @link      LM
+ *
+ * @property $oLogger Logger
  */
 class Mapper extends \levitarmouse\core\Object
 {
@@ -59,7 +63,7 @@ class Mapper extends \levitarmouse\core\Object
      *
      * @return none
      */
-    public function __construct($oDB = null, $oLogger = null)
+    public function __construct($oDB = null, Logger $oLogger = null)
     {
         if (self::$oDb) {
             return;
@@ -330,7 +334,7 @@ EOQ;
                 $this->oLogger->logDebug($e->getMessage());
             }
             $iResult = $e->getMessage();
-            $this->logTrace();
+            $this->logTrace($iResult);
         }
         return $iResult;
     }
@@ -527,7 +531,10 @@ QUERY;
     protected function logTrace($message = '')
     {
         if ($message) {
-            levitarmouse\core\Logger::logWarning($message);
+
+            if ($this->oLogger) {
+                $this->oLogger->log($message);
+            }
         }
 
         return;
