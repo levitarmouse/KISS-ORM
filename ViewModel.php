@@ -216,8 +216,12 @@ abstract class ViewModel
 
         if (is_array($aRsValues) && count($aRsValues) > 0) {
             foreach ($aRsValues as $sField => $value) {
-                if (in_array($sField, $aFieldMapping)) {
-                    $this->aData[array_search($sField, $aFieldMapping)] = $value;
+
+                $bMapping = in_array(strtoupper(trim($sField)), $aFieldMapping);
+
+                if ($bMapping) {
+//                    $this->aData[array_search($sField, $aFieldMapping)] = $value;
+                    $this->aData[array_search(strtoupper($sField), $aFieldMapping)] = $value;
                 }
             }
 

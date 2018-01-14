@@ -18,14 +18,14 @@ $garbage = array_pop($aRootProjectPath);
 
 $composerInstalationPath = implode('/', $aRootProjectPath)."/vendor/";
 $configPath              = implode('/', $aRootProjectPath)."/config/kissorm/";
-$descriptorsPath         = implode('/', $aRootProjectPath)."/App/models/";
+$descriptorsPath         = implode('/', $aRootProjectPath)."/App/gen_models/";
 
 if (!defined('KISSORM_CONFIG_PATH')) {
     define("KISSORM_CONFIG_PATH", $configPath);
 }
 
-if (!defined('KISSORM_DESCRIPTORS_PATH')) {
-    define("KISSORM_DESCRIPTORS_PATH", $descriptorsPath);
+if (!defined('KISSORM_GEN_DESCRIPTORS_PATH')) {
+    define("KISSORM_GEN_DESCRIPTORS_PATH", $descriptorsPath);
 }
 
 if (!defined('KISSORM_DB_CONFIG')) {

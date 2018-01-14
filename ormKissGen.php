@@ -64,7 +64,7 @@ $tables = array();
 
         $dbname = $dbConfig->get($engine.'.dbname');
 
-        $destination = KISSORM_DESCRIPTORS_PATH;
+        $destination = KISSORM_GEN_DESCRIPTORS_PATH;
 
         if (!file_exists($destination)) {
             @$bMkDir = mkdir($destination, 0777, true);
@@ -362,7 +362,7 @@ CODE;
         $nameSpace = trim(implode('\\', $aNameSpace).PHP_EOL);
 
         if (!empty($nameSpace)) {
-            $code = str_replace('{{namespace}}', 'namespace '.'models\\'.$nameSpace.';', $code);
+            $code = str_replace('{{namespace}}', 'namespace '.$nameSpace.';', $code);
         } else {
             $code = str_replace('{{namespace}}', '', $code);
         }
