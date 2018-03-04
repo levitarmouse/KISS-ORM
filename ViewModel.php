@@ -706,4 +706,29 @@ abstract class ViewModel
     }
 
 
+
+    public function get($asArray = false) {
+
+        $attribs = $this->getValues();
+
+        $filterDTO = new dto\GetByFilterDTO($attribs);
+        $orderDto = null;
+        $limitDto = null;
+
+        $result = $this->getByFilter($filterDTO, $orderDto, $limitDto, $asArray);
+
+        $bResult = false;
+        if (is_array($result)) {
+            if (isset($result[0])) {
+
+                $values = array();
+                $b = is_a($result[0], 'levitarmouse\core\Object');
+                if ($b) {
+                    $values = $result[0]->getAttribs();
+                }
+
+                $bResult = $this->init($values);
+            }
+        }
+    }
 }

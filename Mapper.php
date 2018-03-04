@@ -271,7 +271,8 @@ EOQ;
             }
             else {
                 $iTimeStart = (microtime(true));
-                $iResult = $db->sqlExecForBinding($sSql, $aBnd);
+//                $iResult = $db->sqlExecForBinding($sSql, $aBnd);
+                $iResult = $db->executeWithBindings($sSql, $aBnd);
                 $iTimeEnd   = (microtime(true));
                 $fTime = vsprintf('%.3f', $iTimeEnd - $iTimeStart);
 

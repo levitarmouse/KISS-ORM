@@ -178,16 +178,4 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         return $dictionary;
     }
 
-    public function get($asArray = false) {
-
-        $attribs = $this->getValues();
-
-        $filterDTO = new dto\GetByFilterDTO($attribs);
-        $orderDto = null;
-        $limitDto = null;
-
-        $result = $this->getByFilter($filterDTO, $orderDto, $limitDto, $asArray);
-
-        return $result;
-    }
 }
