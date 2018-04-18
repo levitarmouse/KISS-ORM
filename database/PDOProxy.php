@@ -62,7 +62,6 @@ class PDOProxy
 
                     $message->setError(\levitarmouse\core\Codes::DB_ACCESS_DENIED);
 
-                    echo $message->errorDescription . PHP_EOL;
                 }
                 break;
             case 'oracledb':

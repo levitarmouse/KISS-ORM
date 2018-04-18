@@ -51,7 +51,7 @@ class MysqlEngine
 
                     $message->setError(\levitarmouse\core\Codes::DB_ACCESS_DENIED);
 
-                    echo $message->errorDescription . PHP_EOL;
+
                 }
 
         return;

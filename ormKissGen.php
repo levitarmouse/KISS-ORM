@@ -1,16 +1,84 @@
 <?php
 
+include_once './config/kissorm/Bootstrap.php';
 $client = php_sapi_name();
 
 if ($client == 'cli') {
+    $params = $argv;
     define('EOL', PHP_EOL);
 } else {
+    $params = array('');
+    
+    foreach ($_REQUEST as $key => $value) {
+        $params[] = $key;
+    }
     define('EOL', '<br>');
 }
 
 if ($client != 'cli') {
     echo "<pre>";
 }
+//echo json_encode($params);
+//echo $params[0];
+//echo $params[1];
+
+$allowedParams = array('ALL', 'TABLES', 'VIEWS');
+
+$bAllDB = $bTables = $bViews = $bUseINIFile = false;
+
+if ($params) {
+    $param1 = (isset($params[1])) ? strtoupper(trim($params[1])) : '';
+    if ($param1) {
+        $bUseINIFile = false;
+        if (!in_array($param1, $allowedParams)) {
+            echo EOL;
+            echo '    El parámetro indicado no se corresponde con alguno esperado.'.EOL;
+            echo '        All -> todas las Tablas y Vistas de la Base de Datos'.EOL;
+            echo '     TABLES -> todas las Tablas de la Base de Datos'.EOL;
+            echo '      VIEWS -> todas las Vistas de la Base de Datos'.EOL;
+            echo EOL;
+        }
+        if ($param1 == 'ALL') {
+            $bAllDB = true;
+        }
+        if ($param1 == 'TABLES') {
+            $bTables = true;
+        }
+        if ($param1 == 'VIEWS') {
+            $bViews = true;
+        }        
+    }
+}
+
+echo "   ALL: ".(($bAllDB) ? '1' : '0').EOL;
+echo "TABLES: ".(($bTables) ? '1' : '0').EOL;
+echo " VIEWS: ".(($bViews) ? '1' : '0').EOL;
+
+function getDbInfo($attrib = 'name') {
+    $dbConfig = new \levitarmouse\core\ConfigIni(KISSORM_DB_CONFIG);
+    $value = '';
+    $engine = $dbConfig->get('DEFAULT.EngineToUse');
+    if ($attrib == 'name') {
+        $value = $dbConfig->get($engine.'.dbname');
+    }
+    return $value;
+}
+
+
+if ($bAllDB) {
+    
+    $dbname = getDbInfo('name');
+    $queryTables = "Show FULL Tables In {$dbname} where table_type like '%TABLE'";
+    $queryViews = "Show FULL Tables In {$dbname} where table_type like '%VIEW'";
+    
+    $model = new \levitarmouse\kiss_orm\GenericEntity();
+    $aTables = $model->getMapper()->select($queryTables);
+    $aViews = $model->getMapper()->select($queryViews);
+    
+}
+
+//
+//die;
 
 
 echo EOL;
@@ -26,6 +94,7 @@ $tables = array();
 // List of tables for which you want to create INI descriptors
 // AS: Table Name-> array index. Class name -> value;
 
+    if ($bUseINIFile) {
         if (file_exists('ormModels.ini')) {
             $listTables = parse_ini_file('ormModels.ini', true, INI_SCANNER_RAW);
             $tables = $listTables['tables'];
@@ -35,6 +104,19 @@ $tables = array();
             echo "".EOL;
             echo "".EOL;
         }
+    } else {
+        
+        if ($bAllDB) {
+            $tables = array();
+            $descriptor = new stdClass();
+            foreach ($aTables as $key => $value) {
+                $descriptor->NameSpace = '';
+                $tableName = $aTables[$key]['Tables_in_'.strtolower($dbname)];
+                $descriptor->ClassName = ucfirst($tableName);
+                $tables[$tableName] = json_encode($descriptor);
+            }
+        }
+    }
 
         $nTables = count($tables);
         if ($nTables < 1) {
@@ -42,6 +124,7 @@ $tables = array();
             echo "   "."|   No se halló configuración para generar descriptores ".EOL;
             echo "   "."|=======================================================".EOL;
         }
+//    }
 
         ////////////////////////////////////////////
         // INCLUSIÓN NECESARIA
