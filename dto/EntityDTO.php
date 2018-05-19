@@ -7,7 +7,7 @@ namespace levitarmouse\kiss_orm\dto;
  *
  * @author gprieto
  */
-//class EntityDTO extends \levitarmouse\core\Object
+//class EntityDTO extends \levitarmouse\core\BasicObject
 class EntityDTO extends ViewDTO
 {
     public function __construct($useDescriptor = true)

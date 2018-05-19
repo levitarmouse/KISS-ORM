@@ -178,4 +178,14 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         return $dictionary;
     }
 
+    public function getDbName() {
+        $cfg = $this->oMapper->getDbConfig();
+
+        $engine = $cfg->get('DEFAULT.EngineToUse');
+
+        $dbname = $cfg->get($engine.'.dbname');
+
+        return $dbname;
+    }
+
 }

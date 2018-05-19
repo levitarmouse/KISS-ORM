@@ -36,7 +36,7 @@ use stdClass;
  * @link      LM
  */
 abstract class ViewModel
-                extends \levitarmouse\core\Object
+                extends \levitarmouse\core\BasicObject
 {
     const ALREADY_EXISTS   = 'ALREADY_EXISTS'; // Ya existe en la DB
     const CREATE_FAILED    = 'CREATE_FAILED';  // Falló la creación en la DB
@@ -722,7 +722,7 @@ abstract class ViewModel
             if (isset($result[0])) {
 
                 $values = array();
-                $b = is_a($result[0], 'levitarmouse\core\Object');
+                $b = is_a($result[0], 'levitarmouse\core\BasicObject');
                 if ($b) {
                     $values = $result[0]->getAttribs();
                 }

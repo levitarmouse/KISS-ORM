@@ -37,7 +37,7 @@ namespace levitarmouse\kiss_orm\dto;
  *
  */
 
-class DTO extends \levitarmouse\core\Object
+class DTO extends \levitarmouse\core\BasicObject
 {
 
     public function setAttribs($arrayDictionary)

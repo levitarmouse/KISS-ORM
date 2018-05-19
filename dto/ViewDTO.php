@@ -7,7 +7,7 @@ namespace levitarmouse\kiss_orm\dto;
  *
  * @author gprieto
  */
-class ViewDTO extends \levitarmouse\core\Object
+class ViewDTO extends \levitarmouse\core\BasicObject
 {
     public $useDescriptor;
 

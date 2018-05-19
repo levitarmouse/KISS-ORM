@@ -12,7 +12,7 @@ namespace levitarmouse\kiss_orm\dto;
  *
  * @author gprieto
  */
-class OrderByDTO extends \levitarmouse\core\Object
+class OrderByDTO extends \levitarmouse\core\BasicObject
 {
     CONST ASC = 'ASC';
     CONST DESC = 'DESC';
