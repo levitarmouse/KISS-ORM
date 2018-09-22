@@ -25,7 +25,7 @@ use \Exception;
  *
  * @property $oLogger Logger
  */
-class Mapper extends \levitarmouse\core\BasicObject
+class Mapper extends \levitarmouse\core\StdObject
 {
     const DB_CONFIG_FILE_DOESNT_EXIST = 'DB_CONFIG_FILE_DOESNT_EXIST';
     const DB_CONNECTION_FAILED        = 'DB_CONNECTION_FAILED';
