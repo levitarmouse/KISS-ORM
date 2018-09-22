@@ -29,6 +29,7 @@ use Exception;
  * @link      LM
  */
 abstract class EntityModel extends ViewModel
+
 implements interfaces\EntityInterface, interfaces\CollectionInterface
 {
     /**
@@ -50,7 +51,7 @@ implements interfaces\EntityInterface, interfaces\CollectionInterface
         $iResult = 0;
         $aValues = $this->getValues();
 
-        if (is_array($aValues) && count($aValues > 0)) {
+        if (is_array($aValues) && count($aValues) > 0) {
             $iResult = $this->oMapper->create($aValues);
 
             if (is_numeric($iResult)) {

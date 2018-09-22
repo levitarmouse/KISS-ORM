@@ -29,6 +29,8 @@ abstract class FilterDTO extends DTO {
     const MAX = '$MAX';
     const CONCAT = '||$CONCAT$||';
     const SUBFILTER = '||$SUBFILTER$||';
+    
+    public $raw;
 
 
     // TODO

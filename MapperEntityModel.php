@@ -385,6 +385,14 @@ class MapperEntityModel extends Mapper implements EntityInterface, CollectionInt
                 $sWhere .= $fieldTest['where'];
                 $aBnd = array_merge($fieldTest['binding'], $aBnd);
             }
+            
+            if ($filterDTO->raw) {
+                foreach ($filterDTO->raw as $key => $append) {
+
+                    $sWhere .= ' '.$append;
+                }                
+            }
+            
 
             $sSql .= $sWhere;
 
